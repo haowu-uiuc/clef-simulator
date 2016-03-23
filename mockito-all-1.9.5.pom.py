@@ -1,0 +1,1 @@
+4.0.0 org.mockito mockito-all 1.9.5 Mockito jar http://www.mockito.org Mock objects library for java The MIT License http://code.google.com/p/mockito/wiki/License repo http://code.google.com/p/mockito/source/browse/ szczepiq Szczepan Faber
