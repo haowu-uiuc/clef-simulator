@@ -9,6 +9,10 @@ import largeflow.datatype.Damage;
  * Calculate the maximum damage could be caused by all attack flows, among
  * different number of counters and different attack rate
  * 
+ * 1. Count both Best Effort damage and Priority damage in.
+ * 2. Inbound link could be larger than the outbound link.
+ * 3. Only for single router network.
+ * 
  * @author HaoWu
  *
  */

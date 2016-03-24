@@ -12,6 +12,9 @@ import largeflow.datatype.MaxDamageEvaluatorResult;
  * Calculate the maximum damage could be caused by all attack flows, among
  * different number of counters and different attack rate
  * 
+ * 1. Only count the Best Effort damage in.
+ * 2. Assume the inbound link = outbound link.
+ * 
  * @author HaoWu
  *
  */

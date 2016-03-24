@@ -49,14 +49,14 @@ public class MaxOveruseDamageEvaluatorTest {
 		numOfSmallFlows = 0;
 		numOfLargeFlows = 10;
 		numOfBurstFlows = 0;
-		largeFlowRate = linkCapacity / 100;
+		largeFlowRate = linkCapacity / 1000;
 		smallFlowRate = 1500;
 		burstFlowSize = 450000;
 
 		// for EARDet
-		bias = (int) (0.05 * largeFlowRate);
-		gamma_h = largeFlowRate - bias;
-		gamma_l = gamma_h / 10;
+		bias = (int) (0.0 * largeFlowRate);
+	    gamma_l = largeFlowRate - bias;
+		gamma_h = gamma_l * 10;
 		alpha = 1518;
 		beta_l = 4 * alpha;
 		maxIncubationTime = 1.0;
@@ -94,11 +94,11 @@ public class MaxOveruseDamageEvaluatorTest {
 		EARDet eardet = new EARDet("eardet", alpha, beta_l, gamma_h, gamma_l,
 				maxIncubationTime, linkCapacity);
 		LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
-				"leakybucket", eardet.getBetaH(), eardet.getGammaH(),
+				"leakybucket", eardet.getBetaL(), largeFlowRate,
 				linkCapacity);
 
-		int maxAtkRate = largeFlowRate * 10;
-		int minAtkRate = largeFlowRate;
+		int maxAtkRate = largeFlowRate * 15;
+		int minAtkRate = largeFlowRate * 5;
 //		int atkRateInterval = (maxAtkRate - minAtkRate) / 10;
 		int atkRateInterval = (maxAtkRate - minAtkRate) / 2;
 		int maxNumOfCounters = eardet.getNumOfCounters() * 2;

@@ -34,7 +34,7 @@ public class LoggerTest {
 	@After
 	public void tearDown() throws Exception {
 		logger.close();
-		logger.deleteLogs();
+//		logger.deleteLogs();
 	}
 
 	@Test
@@ -79,12 +79,29 @@ public class LoggerTest {
         router3_BlackList.put(new FlowId(1), 0.35);
         router3_BlackList.put(new FlowId(2), 0.65);
         
-        // TODO: mock the blackList_droppedTraffic
+        Map<FlowId, Integer> router1_droppedTraffic = new HashMap<>();
+        router1_droppedTraffic.put(new FlowId(1), 1111);
+        router1_droppedTraffic.put(new FlowId(2), 1222);
+        router1_droppedTraffic.put(new FlowId(3), 1333);
+        
+        Map<FlowId, Integer> router2_droppedTraffic = new HashMap<>();
+        router2_droppedTraffic.put(new FlowId(1), 2111);
+        router2_droppedTraffic.put(new FlowId(2), 2222);
+        router2_droppedTraffic.put(new FlowId(3), 2333);
+        
+        Map<FlowId, Integer> router3_droppedTraffic = new HashMap<>();
+        router3_droppedTraffic.put(new FlowId(1), 3111);
+        router3_droppedTraffic.put(new FlowId(2), 3222);
         
         when(baseDetector.getBlackList()).thenReturn(baseDetector_BlackList);
         when(router1.getBlackList()).thenReturn(router1_BlackList);
         when(router2.getBlackList()).thenReturn(router2_BlackList);
         when(router3.getBlackList()).thenReturn(router3_BlackList);
+        
+        when(router1.getDroppdTrafficMap()).thenReturn(router1_droppedTraffic);
+        when(router2.getDroppdTrafficMap()).thenReturn(router2_droppedTraffic);
+        when(router3.getDroppdTrafficMap()).thenReturn(router3_droppedTraffic);
+        
 		
 		//test logRouterDamage
 		logger.logRouterDamage(router1, 1000, 1000, damage);

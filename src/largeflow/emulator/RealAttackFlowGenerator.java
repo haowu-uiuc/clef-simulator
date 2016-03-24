@@ -6,6 +6,11 @@ import java.io.IOException;
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 
+/**
+ * combine the real traffic and attack flows (uniform distributed)
+ * @author HaoWu
+ *
+ */
 public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 
 	private UniAttackRateFlowGenerator attackFlowGenerator;
