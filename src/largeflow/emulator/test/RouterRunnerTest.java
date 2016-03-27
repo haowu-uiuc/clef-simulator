@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import largeflow.datatype.Packet;
 import largeflow.emulator.Detector;
-import largeflow.emulator.RouterRunner;
+import largeflow.emulator.SingleRouterRunner;
 import largeflow.emulator.SimpleRouter;
 import largeflow.emulator.PacketReaderFactory;
 
@@ -47,7 +47,7 @@ public class RouterRunnerTest {
 
 	@Test
 	public void test() throws Exception {
-		RouterRunner routerRunner = new RouterRunner();
+		SingleRouterRunner routerRunner = new SingleRouterRunner();
 		routerRunner.setPacketReader(PacketReaderFactory.getPacketReader(trafficFile));
 		
 		//mock
