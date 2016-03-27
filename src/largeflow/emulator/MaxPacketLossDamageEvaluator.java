@@ -1,9 +1,11 @@
 package largeflow.emulator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import largeflow.datatype.Damage;
+import largeflow.datatype.Packet;
 
 /**
  * Calculate the maximum damage could be caused by all attack flows, among
@@ -34,7 +36,11 @@ public class MaxPacketLossDamageEvaluator {
     // bestEffortLinkCapacity
     // private int priorityLinkCapacity;
     // private int bestEffortLinkCapacity;
-
+    
+    private Long preQdRealTrafficVolume;
+    private HashMap<String, Long> postQdAttackTrafficMap;
+    private HashMap<String, Long> postQdRealTrafficMap;
+    
     private Logger logger;
 
     public MaxPacketLossDamageEvaluator() {
@@ -45,7 +51,12 @@ public class MaxPacketLossDamageEvaluator {
         maxNumOfCounters = -1;
         minNumOfCounters = -1;
         numOfCounterInterval = -1;
-        numOfRepeatRounds = 1;        
+        numOfRepeatRounds = 1;
+        this.maxPacketSize = NetworkConfig.maxPacketSize;
+        
+        postQdAttackTrafficMap = new HashMap<>();
+        postQdRealTrafficMap = new HashMap<>();
+        preQdRealTrafficVolume = (long)0;
     }
 
     public MaxPacketLossDamageEvaluator(int maxAtkRate,
@@ -59,7 +70,11 @@ public class MaxPacketLossDamageEvaluator {
         configAtkRate(maxAtkRate, minAtkRate, atkRateInterval);
         configNumOfCounters(maxNumOfCounters,
                 minNumOfCounters,
-                numOfCounterInterval);        
+                numOfCounterInterval);
+        
+        postQdAttackTrafficMap = new HashMap<>();
+        postQdRealTrafficMap = new HashMap<>();
+        preQdRealTrafficVolume = (long)0;
     }
 
     public void configAtkRate(int max,
@@ -112,6 +127,8 @@ public class MaxPacketLossDamageEvaluator {
 
     public void addRouter(AdvancedRouter router) {
         routersToEvalList.add(router);
+        postQdAttackTrafficMap.put(router.name(), (long)0);
+        postQdRealTrafficMap.put(router.name(), (long)0);
     }
 
     public void setFlowGenerator(RealAttackFlowGenerator flowGenerator) {
@@ -163,13 +180,6 @@ public class MaxPacketLossDamageEvaluator {
         }
         logger.flush();
 
-        // init router runner
-        RouterRunner routerRunner = new RouterRunner();
-        routerRunner.setBaseDetector(baseDetector);
-        for (Router router : routersToEvalList) {
-            routerRunner.addRouter(router);
-        }
-
         for (int round = 0; round < numOfRepeatRounds; round++) {
             for (Router router : routersToEvalList) {
                 logger.logRouterDamage(router,
@@ -182,8 +192,10 @@ public class MaxPacketLossDamageEvaluator {
                     atkRate += atkRateInterval) {
                 flowGenerator.setAttackRate(atkRate);
                 flowGenerator.generateFlows();
-                routerRunner.setPacketReader(PacketReaderFactory
-                        .getPacketReader(flowGenerator.getOutputFile()));
+                preQdRealTrafficVolume = flowGenerator.getRealTrafficVolume();
+                
+                PacketReader packetReader = PacketReaderFactory
+                        .getPacketReader(flowGenerator.getOutputFile());
 
                 boolean baseDetectorLogged = false;
                 
@@ -194,22 +206,47 @@ public class MaxPacketLossDamageEvaluator {
                     System.out.println(round + "." + i + "\tRate: " + atkRate
                             + "\tCounter: " + numOfCounters);
 
-                    try {
+//                    try {
                         for (Router router : routersToEvalList) {
                             router.setNumOfDetectorCounters(numOfCounters);
                         }
-                        routerRunner.reset();
-                        routerRunner.run();
-
+                        
+                        // reset routers and base detector
+                        packetReader.rewind();
+                        baseDetector.reset();
+                        for(Router router : routersToEvalList){
+                            router.reset();
+                        }
+                        resetOutputTraffic();
+                        
+                        // run routers and base detector
+                        Packet packet;
+                        while((packet = packetReader.getNextPacket()) != null){
+                            baseDetector.processPacket(packet);
+                            for(AdvancedRouter router : routersToEvalList){
+                                router.processPacket(packet);
+                                accumulateOutputTraffic(router);
+                            }
+                        }
+                        
+                        for(AdvancedRouter router : routersToEvalList){
+                            router.processEnd();
+                            accumulateOutputTraffic(router);
+                        }
+                        
+                        packetReader.close();
+                        
                         // calculate the damage for each detector and log it
                         for (AdvancedRouter router : routersToEvalList) {
                             // Calculate the damage for each router
                             PacketLossDamageCalculator damageCalculator = new PacketLossDamageCalculator();
                             Damage damage = damageCalculator.getDamage(baseDetector, router, flowGenerator);
+                            damage = new Damage();
+
                             logger.logRouterDamage(router, atkRate, numOfCounters, damage);
                             logger.logRouterBlackList(router, atkRate, numOfCounters, round);
                         }
-
+                        
                         if (!baseDetectorLogged) {
                             // we only log the blacklist from base detector once to avoid duplication
                             logger.logBaseDetectorBlackList(baseDetector, atkRate, round);
@@ -217,15 +254,38 @@ public class MaxPacketLossDamageEvaluator {
                         }
                         
                         logger.flush();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+//                    } catch (Exception e) {
+//                        System.out.println(e.toString());
+//                    }
                 }
                 System.gc();
             }
         }
 
         logger.close();
+    }
+    
+    private void accumulateOutputTraffic(AdvancedRouter router) {
+        Packet nextPacket;
+        for (int j = 0; j < router.getNumOfOutboundLinks(); j++) {
+            while ((nextPacket = router.getNextOutboundPacket(j)) != null) {
+                if (flowGenerator.isLargeFlow(nextPacket.flowId) ||
+                        flowGenerator.isBurstFlow(nextPacket.flowId)) {
+                    long newValue = postQdAttackTrafficMap.get(router.name()) + nextPacket.size;
+                    postQdAttackTrafficMap.put(router.name(), newValue);
+                } else {
+                    long newValue = postQdRealTrafficMap.get(router.name()) + nextPacket.size;
+                    postQdRealTrafficMap.put(router.name(), newValue);
+                }
+            }
+        }
+    }
+    
+    private void resetOutputTraffic() {
+        for (AdvancedRouter router : routersToEvalList) {
+            postQdAttackTrafficMap.put(router.name(), (long) 0);
+            postQdRealTrafficMap.put(router.name(), (long) 0);
+        }
     }
 
 }
