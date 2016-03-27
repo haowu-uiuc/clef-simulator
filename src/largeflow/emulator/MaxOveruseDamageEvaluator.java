@@ -34,7 +34,7 @@ public class MaxOveruseDamageEvaluator {
 	private int maxPacketSize;
 	private int linkCapacity;
 	private Logger logger;
-	private RouterRunner routerRunner;
+	private SingleRouterRunner routerRunner;
 	private Map<String, List<MaxDamageEvaluatorResult>> resultMap;
 
 	public MaxOveruseDamageEvaluator() {
@@ -154,7 +154,7 @@ public class MaxOveruseDamageEvaluator {
 
 		// init emulator and result map
 		resultMap = new HashMap<>();
-		routerRunner = new RouterRunner();
+		routerRunner = new SingleRouterRunner();
 		routerRunner.setBaseDetector(baseDetector);
 		for (Detector detector : detectorsToEvalList) {
 			List<MaxDamageEvaluatorResult> resultList = new ArrayList<>();
