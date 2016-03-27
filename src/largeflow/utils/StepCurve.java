@@ -70,7 +70,7 @@ public class StepCurve {
             
             prePoint = curPoint;
         }
-        
+                
         if (startIndex < 0) {
             // didnt find start and end points between existing points,
             // append the startPoint and endPoint at the end
@@ -79,6 +79,7 @@ public class StepCurve {
         } else if (endIndex < 0) {
             // didnt find an end points between existing points,
             // append the endPoint at the end
+            endIndex = jumpPoints.size();
         }
         
         endIndex ++; // because we insert startPoint first, so endIndex++ is necessary

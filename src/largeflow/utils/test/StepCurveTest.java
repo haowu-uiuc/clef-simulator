@@ -47,7 +47,7 @@ public class StepCurveTest {
         assertTrue(curve.getJumpPoints().get(0).equals(new Tuple<Double, Integer>(0., 0)));
         assertTrue(curve.getJumpPoints().get(1).equals(new Tuple<Double, Integer>(1., 2)));
         assertTrue(curve.getJumpPoints().get(2).equals(new Tuple<Double, Integer>(5., 0)));
-        
+                
         // add a burst with exact the same start and end time of a existing one
         curve.addCurve(new Tuple<Double, Integer>(1., 1), 5.);
         System.out.println(curve);
@@ -159,6 +159,27 @@ public class StepCurveTest {
         assertTrue(curve.getJumpPoints().get(9).equals(new Tuple<Double, Integer>(9., 7)));
         assertTrue(curve.getJumpPoints().get(10).equals(new Tuple<Double, Integer>(10., 0)));
         
+        
+        // test the case when the endindex is at the end of the existing curve
+        // init curve
+        StepCurve curve2 = new StepCurve(10.);
+        System.out.println(curve2);
+        assertTrue(curve2.endTime() == 10.);
+        assertTrue(curve2.getJumpPoints().size() == 1);
+        assertTrue(curve2.getJumpPoints().get(0).equals(new Tuple<Double, Integer>(0., 0)));
+        
+        // add first burst
+        curve2.addCurve(new Tuple<Double, Integer>(1., 2), 5.);
+                
+        // add a burst whose end point is larger then the first one.
+        curve2.addCurve(new Tuple<Double, Integer>(3., 1), 6.);
+        System.out.println(curve2);
+        assertTrue(curve2.getJumpPoints().size() == 5);
+        assertTrue(curve2.getJumpPoints().get(0).equals(new Tuple<Double, Integer>(0., 0)));
+        assertTrue(curve2.getJumpPoints().get(1).equals(new Tuple<Double, Integer>(1., 2)));
+        assertTrue(curve2.getJumpPoints().get(2).equals(new Tuple<Double, Integer>(3., 3)));
+        assertTrue(curve2.getJumpPoints().get(3).equals(new Tuple<Double, Integer>(5., 1)));
+        assertTrue(curve2.getJumpPoints().get(4).equals(new Tuple<Double, Integer>(6., 0)));
     }
 
 }
