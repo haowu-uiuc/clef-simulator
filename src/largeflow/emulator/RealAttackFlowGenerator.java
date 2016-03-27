@@ -162,6 +162,10 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 	    return realTrafficFlowGenerator.getNumOfFlows();
 	}
 	
+	public Long getRealTrafficVolume() {
+	    return realTrafficFlowGenerator.getRealTrafficVolume();
+	}
+	
 	@Override
 	public Integer getNumOfFlows() throws Exception {
 	    return realTrafficFlowGenerator.getNumOfFlows() 

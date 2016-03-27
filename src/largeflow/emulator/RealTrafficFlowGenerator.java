@@ -142,5 +142,9 @@ public class RealTrafficFlowGenerator extends FlowGenerator {
         }
         return numOfRealFlows;
     }
+    
+    public Long getRealTrafficVolume() {
+        return totalRealTrafficVolume;
+    }
 
 }
