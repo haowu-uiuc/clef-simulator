@@ -206,7 +206,7 @@ public class MaxPacketLossDamageEvaluator {
                     System.out.println(round + "." + i + "\tRate: " + atkRate
                             + "\tCounter: " + numOfCounters);
 
-//                    try {
+                    try {
                         for (Router router : routersToEvalList) {
                             router.setNumOfDetectorCounters(numOfCounters);
                         }
@@ -254,9 +254,9 @@ public class MaxPacketLossDamageEvaluator {
                         }
                         
                         logger.flush();
-//                    } catch (Exception e) {
-//                        System.out.println(e.toString());
-//                    }
+                    } catch (Exception e) {
+                        System.out.println(e.toString());
+                    }
                 }
                 System.gc();
             }
