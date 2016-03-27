@@ -3,6 +3,8 @@ package largeflow.emulator.test;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -86,7 +88,8 @@ public class AdvancedRouterTest {
                 largeFlowRate / 2,
                 router.getOutboundCapacity(0));
         router.setPostQdDetector(postQdDetector);
-        
+   
+        List<Packet> outputPackets = new ArrayList<>();
         // run the router
         PacketReader pr = new FilePacketReader(flowGenerator.getOutputFile());
         Packet packet;
@@ -95,8 +98,21 @@ public class AdvancedRouterTest {
                 baseDetector.processPacket(packet);
             }
             router.processPacket(packet);
+            
+            Packet nextOutboundPacket;
+            while ((nextOutboundPacket = router.getNextOutboundPacket(0)) != null) {
+                outputPackets.add(nextOutboundPacket);
+            }
         }
         router.processEnd();
+        
+        Packet nextOutboundPacket;
+        while ((nextOutboundPacket = router.getNextOutboundPacket(0)) != null) {
+            outputPackets.add(nextOutboundPacket);
+        }
+        
+        //System.out.println(outputPackets);
+        //System.out.println(router.getBlackList());
         
         //System.out.println(postQdDetector.getBlackList());
         

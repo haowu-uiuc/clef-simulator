@@ -38,6 +38,7 @@ public class AdvancedRouter implements Router {
     private ArrayList<Detector> postQdDetectors;
     private QueueDiscipline inboundQD;
     private List<QueueDiscipline> outboundQDs;
+    private List<Queue<Packet>> outputQueues;
     private RoutingTable routingTable;
     
     private Map<FlowId, Double> blackList = null;
@@ -74,6 +75,9 @@ public class AdvancedRouter implements Router {
         // Set outbound QD
         outboundQDs = new ArrayList<>();
         outboundQDs.add(new QueueDiscipline(outboundCapacity));
+        
+        outputQueues = new ArrayList<>();
+        outputQueues.add(new LinkedList<>());
     }
 
     /**
@@ -112,10 +116,12 @@ public class AdvancedRouter implements Router {
             inboundQD = null;
         }
 
-        // set outbound QDs
+        // set outbound QDs and output queues
         outboundQDs = new ArrayList<>();
+        outputQueues = new ArrayList<>();
         for (int i = 0; i < outboundCapacities.size(); i++) {
             outboundQDs.add(new QueueDiscipline(outboundCapacities.get(i)));
+            outputQueues.add(new LinkedList<>());
         }
     }
 
@@ -200,8 +206,9 @@ public class AdvancedRouter implements Router {
             }
             
             qd.reset();
+            
+            outputQueues.get(i).clear();
         }
-
     }
 
     @Override
@@ -313,11 +320,12 @@ public class AdvancedRouter implements Router {
                     postQdDetectors.get(i).processPacket(outputPacket);
                 }
                 
-                // TODO: for evaluation of multiple nodes, we need the output 
+                // For evaluation of multiple nodes, we need the output 
                 // packets from each outbound link, and use them as the input
                 // packets of the downstream node.
-                // We can have a Packet Writer in the router and output the
-                // packets into Packet Writer here.
+                // We can have a Packet Queue in the router and output the
+                // packets into Packet Queue here.
+                outputQueues.get(i).add(outputPacket);
             }
         }
     }
@@ -475,6 +483,34 @@ public class AdvancedRouter implements Router {
         } else {
             return routingTable.getOutboundPortIndex(flowId);
         }
+    }
+    
+    /**
+     * get the next packets output into outbound link
+     * @param outboundIndex
+     * @return
+     */
+    public Packet getNextOutboundPacket(int outboundIndex) {
+        if (outputQueues.get(outboundIndex).isEmpty()) {
+            return null;
+        }
+        
+        return outputQueues.get(outboundIndex).poll();
+    }
+    
+    /**
+     * get the all next packets output into outbound link
+     * @param outboundIndex
+     * @return
+     */
+    public List<Packet> getNextAllOutboundPacket(int outboundIndex) {
+        Queue<Packet> queue = outputQueues.get(outboundIndex);
+        List<Packet> packets = new ArrayList<>();
+        while (!outputQueues.get(outboundIndex).isEmpty()) {
+            packets.add(queue.poll());
+        }
+        
+        return packets;
     }
 
 }
