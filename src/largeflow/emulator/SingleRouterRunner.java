@@ -3,20 +3,22 @@ package largeflow.emulator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 
-public class RouterRunner {
+public class SingleRouterRunner {
 	
 	private List<Router> routersToRunList;
 	private PacketReader packetReader;
 	private Detector baseDetector;
 	
-	public RouterRunner(){
+	public SingleRouterRunner(){
 		routersToRunList = new ArrayList<>();
 	}
 	
-	public RouterRunner(PacketReader packetReader){
+	public SingleRouterRunner(PacketReader packetReader){
 		routersToRunList = new ArrayList<>();
 		this.packetReader = packetReader;
 	}
@@ -63,6 +65,10 @@ public class RouterRunner {
 				router.processPacket(packet);
 			}
 		}
+		
+		for(Router router : routersToRunList){
+            router.processEnd();
+        }
 		
 		packetReader.close();
 	}	
