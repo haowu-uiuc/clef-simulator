@@ -19,7 +19,7 @@ public class Packet {
 	
 	@Override
 	public String toString() {
-		return flowId + ", " + size + ", " + time; 
+		return "(" + flowId + ", " + size + ", " + time + ")"; 
 	}
 	
 }
