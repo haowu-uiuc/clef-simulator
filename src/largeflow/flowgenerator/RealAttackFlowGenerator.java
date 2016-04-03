@@ -239,14 +239,18 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 	        outputFile.delete();
 	    }
 	    
+	    deleteTmpFiles();
+	}
+	
+	public void deleteTmpFiles() {
 	    if (attackFlowGenerator.outputFile != null 
-	            && attackFlowGenerator.outputFile.exists()) {
-	        attackFlowGenerator.outputFile.delete();
+                && attackFlowGenerator.outputFile.exists()) {
+            attackFlowGenerator.outputFile.delete();
         }
-	    
-	    if (legitimateFlowGenerator.outputFile != null 
-	            && legitimateFlowGenerator.outputFile.exists()) {
-	        legitimateFlowGenerator.outputFile.delete();
+        
+        if (legitimateFlowGenerator.outputFile != null 
+                && legitimateFlowGenerator.outputFile.exists()) {
+            legitimateFlowGenerator.outputFile.delete();
         }
 	}
 	
