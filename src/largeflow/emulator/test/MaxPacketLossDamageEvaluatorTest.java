@@ -1,20 +1,14 @@
 package largeflow.emulator.test;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 
-import largeflow.datatype.MaxDamageEvaluatorResult;
 import largeflow.eardet.EARDet;
 import largeflow.emulator.Logger;
 import largeflow.emulator.AdvancedRouter;
 import largeflow.emulator.LeakyBucketDetector;
-import largeflow.emulator.MaxOveruseDamageEvaluator;
 import largeflow.emulator.MaxPacketLossDamageEvaluator;
-import largeflow.emulator.RealAttackFlowGenerator;
-import largeflow.emulator.RealTrafficFlowGenerator;
-import largeflow.emulator.UniAttackRateFlowGenerator;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.RealAttackFlowGenerator;
+import largeflow.flowgenerator.RealTrafficFlowGenerator;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,27 +18,33 @@ import org.junit.Test;
 
 public class MaxPacketLossDamageEvaluatorTest {
 
-	static private Integer inboundLinkCapacity; // Byte / sec
-	static private Integer outboundLinkCapacity; // Byte / sec
-	static private Integer timeInterval; // seconds, length of packet stream
-	static private Integer largeFlowPacketSize; // Byte, packet size for generated flows
-	static private Integer numOfSmallFlows; // number of small flows to generate
-	static private Integer numOfLargeFlows; // number of large flows to generate
-	static private Integer numOfBurstFlows; // number of burst flows to generate
-	static private Integer largeFlowRate; // rate of large flows
-	static private Integer burstTolerance; // maximum burst size
-	static private Integer smallFlowRate; // rate of small flows
-	static private Integer burstFlowSize; // size of each burst
+	static private int inboundLinkCapacity; // Byte / sec
+	static private int outboundLinkCapacity; // Byte / sec
+	static private int timeInterval; // seconds, length of packet stream
+	static private int largeFlowPacketSize; // Byte, packet size for generated flows
+	static private int numOfSmallFlows; // number of small flows to generate
+	static private int numOfLargeFlows; // number of large flows to generate
+	static private int numOfBurstFlows; // number of burst flows to generate
+	static private int largeFlowRate; // rate of large flows
+	static private int burstTolerance; // maximum burst size
+	static private int smallFlowRate; // rate of small flows
+	static private int burstFlowSize; // size of each burst
+	
+	static private int perFlowReservation; // per-flow reservation bandwidth
+	static private int fullRealFlowPacketSize; // packet size of synthetic full real flows
+	static private int numOfFullRealFlows;     // number of real flows fully use the reservation
+	static private int numOfUnderUseRealFlows; // number of real flows under use the reservation
+	
 	static private File inputTestTrafficFile;
 	static private File realTrafficFile;
 	static private File realTrafficOutputFile;
-	static private Integer bias;
-	static private Integer gamma_h;
-	static private Integer gamma_l;
-	static private Integer alpha;
-	static private Integer beta_l;
-	static private Double maxIncubationTime;
-	static private Integer numOfRepeatRounds;
+	static private int bias;
+	static private int gamma_h;
+	static private int gamma_l;
+	static private int alpha;
+	static private int beta_l;
+	static private double maxIncubationTime;
+	static private int numOfRepeatRounds;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -53,12 +53,17 @@ public class MaxPacketLossDamageEvaluatorTest {
 		numOfRepeatRounds = 2;
 		
 		// for flow generator
+	    perFlowReservation = outboundLinkCapacity / 250;
+	    fullRealFlowPacketSize = 500;
+	    numOfFullRealFlows = 135;
+	    numOfUnderUseRealFlows = 15;
+	        
 		timeInterval = 10;
 		largeFlowPacketSize = 500;
 //		numOfSmallFlows = 0;
 		numOfLargeFlows = 10;
 //		numOfBurstFlows = 0;
-		largeFlowRate = outboundLinkCapacity / 200;
+		largeFlowRate = perFlowReservation;
 		burstTolerance = 4 * 1518;
 //		smallFlowRate = 1500;
 //		burstFlowSize = 450000;
@@ -99,22 +104,8 @@ public class MaxPacketLossDamageEvaluatorTest {
 	@Test
 	public void test() throws Exception {
 
-	    RealTrafficFlowGenerator realTrafficFlowGenerator 
-	        = new RealTrafficFlowGenerator(outboundLinkCapacity, 
-	                timeInterval, 
-	                realTrafficFile);
-	    // use outbound link capacity here to guarantee the real traffic 
-	    // always fits the outbound link
-	    realTrafficFlowGenerator.setOutputFile(realTrafficOutputFile);
-	    realTrafficFlowGenerator.generateFlows();
-	    
-		RealAttackFlowGenerator flowGenerator = new RealAttackFlowGenerator(
-		        inboundLinkCapacity, timeInterval, largeFlowPacketSize, 
-		        numOfLargeFlows, largeFlowRate, realTrafficFlowGenerator);
-		flowGenerator.setOutputFile(inputTestTrafficFile);
-
 		// setup base detector
-		LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
+		LeakyBucketDetector baseDetector = new LeakyBucketDetector(
 				"leakybucket", burstTolerance, largeFlowRate,
 				outboundLinkCapacity);
 
@@ -125,6 +116,30 @@ public class MaxPacketLossDamageEvaluatorTest {
 		EARDet eardet = new EARDet("eardet", alpha, beta_l, gamma_h, gamma_l,
                 maxIncubationTime, outboundLinkCapacity);
 		router1.setPostQdDetector(eardet);
+		
+		// setup flow generator
+		RealTrafficFlowGenerator realTrafficFlowGenerator 
+        = new RealTrafficFlowGenerator(outboundLinkCapacity, 
+                timeInterval, 
+                realTrafficFile);
+        // use outbound link capacity here to guarantee the real traffic 
+        // always fits the outbound link
+        realTrafficFlowGenerator.setOutputFile(realTrafficOutputFile);
+        realTrafficFlowGenerator.enableLargeRealFlowFilter(baseDetector);
+        realTrafficFlowGenerator.generateFlows();
+        
+        RealAttackFlowGenerator flowGenerator = new RealAttackFlowGenerator(
+                inboundLinkCapacity,
+                timeInterval,
+                largeFlowPacketSize,
+                numOfLargeFlows,
+                largeFlowRate,
+                perFlowReservation,
+                fullRealFlowPacketSize,
+                numOfFullRealFlows,
+                numOfUnderUseRealFlows,
+                realTrafficFlowGenerator);
+        flowGenerator.setOutputFile(inputTestTrafficFile);
 		
 		
 		// setup evaluator
@@ -145,11 +160,11 @@ public class MaxPacketLossDamageEvaluatorTest {
 		evaluator.setLogger(new Logger(
 				"test_MaxPacketLossDamageEvaluator"));
 		evaluator.setFlowGenerator(flowGenerator);
-		evaluator.setBaseDetector(leakyBucketDetector);
+		evaluator.setBaseDetector(baseDetector);
 		evaluator.addRouter(router1);
 		evaluator.setNumOfRepeatRounds(numOfRepeatRounds);
 		evaluator.run();
-
+        flowGenerator.deleteOutputFile();
 		
 	}
 }

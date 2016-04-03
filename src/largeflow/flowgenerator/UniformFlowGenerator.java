@@ -1,7 +1,8 @@
-package largeflow.emulator;
+package largeflow.flowgenerator;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.emulator.PacketWriter;
 
 /**
  * Uniform flow generator generates attack flows with rate largeFlowRate byte /
@@ -19,6 +20,8 @@ import largeflow.datatype.Packet;
  */
 public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 
+    private double[] largeFlowStartTimes;
+    
 	public UniformFlowGenerator() {
 		super();
 	}
@@ -41,6 +44,7 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 				largeFlowRate,
 				smallFlowRate,
 				burstFlowSize);
+		largeFlowStartTimes = new double[numOfLargeFlows];
 	}
 
 	public UniformFlowGenerator(Integer linkCapacity,
@@ -53,6 +57,7 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 				packetSize,
 				numOfLargeFlows,
 				largeFlowRate);
+        largeFlowStartTimes = new double[numOfLargeFlows];
 	}
 
 	public UniformFlowGenerator(Integer linkCapacity,
@@ -64,8 +69,8 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer largeFlowRate,
 			Integer smallFlowRate,
 			Integer burstFlowSize,
-			Integer bestEffortLinkCapacity) {
-		super(bestEffortLinkCapacity,
+			Integer priorityLinkCapacity) {
+		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfSmallFlows,
@@ -73,7 +78,9 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 				numOfBurstFlows,
 				largeFlowRate,
 				smallFlowRate,
-				burstFlowSize);
+				burstFlowSize,
+				priorityLinkCapacity);
+		largeFlowStartTimes = new double[numOfLargeFlows];
 	}
 
 	public UniformFlowGenerator(Integer linkCapacity,
@@ -81,15 +88,22 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer packetSize,
 			Integer numOfLargeFlows,
 			Integer largeFlowRate,
-			Integer bestEffortLinkCapacity) {
+			Integer priorityLinkCapacity) {
 		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfLargeFlows,
 				largeFlowRate,
-				bestEffortLinkCapacity);
+				priorityLinkCapacity);
+		largeFlowStartTimes = new double[numOfLargeFlows];
 	}
 
+	@Override
+	public void setNumOfLargeFlows(Integer numOfLargeFlows) {
+        largeFlowStartTimes = new double[numOfLargeFlows];
+        super.setNumOfLargeFlows(numOfLargeFlows);
+    }
+	
 	@Override
 	public void generateFlowsHelper() throws Exception {
 		parameterCheck();
@@ -99,6 +113,8 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 		}
 		outputPackets = null;
 
+	    largeFlowStartTimes = new double[numOfLargeFlows];
+		
 		Integer maxNumOfPacketsPerSecond = linkCapacity / largeFlowPacketSize;
 
 		PacketWriter packetWriter = new PacketWriter(outputFile);
@@ -119,6 +135,7 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 					streamBuf[pos] = fid;
 					flowTime[fid - 1] = (double) pos * (double) largeFlowPacketSize
 							/ (double) linkCapacity;
+					setStartTimeOfLargeFlow(fid, flowTime[fid - 1]);
 					flowTime[fid - 1] += packetTimeIntervals;
 
 					break;
@@ -225,5 +242,14 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 	public Integer getNumOfFlows() {
 	    return numOfBurstFlows + numOfLargeFlows + numOfSmallFlows;
 	}
+
+    @Override
+    public double getStartTimeOfLargeFlow(FlowId flowId) {
+        return largeFlowStartTimes[flowId.getIntegerValue() - numOfBurstFlows - 1];
+    }
+    
+    private void setStartTimeOfLargeFlow(int fid, double startTime) {
+        largeFlowStartTimes[fid - numOfBurstFlows - 1] = startTime;
+    }
 
 }

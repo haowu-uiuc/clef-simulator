@@ -10,16 +10,22 @@ public class Damage {
             "FN",
             "TP",
             "perFlowDamage",
-            "totalDamage");
+            "totalDamage",
+            "best_effort_damage",
+            "FP_damage",
+            "qd_drop_damage");
 
     static public List<String> getTitleList() {
         return new ArrayList<>(titleList);
     }
     
-    public int FN;
-    public int FP;
-    public int TP;
-    public double perFlowDamage;
-    public double totalDamage;
+    public Integer FN = null;
+    public Integer FP = null;
+    public Integer TP = null;
+    public Double perFlowDamage = null;
+    public Double totalDamage = null;
+    public Double BE_damage = null;
+    public Double FP_damage = null;
+    public Double QD_drop_damage = null;
 
 }

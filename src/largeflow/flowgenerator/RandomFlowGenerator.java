@@ -1,7 +1,8 @@
-package largeflow.emulator;
+package largeflow.flowgenerator;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.emulator.PacketWriter;
 
 /**
  * Random flow generator generates attack flows with rate largeFlowRate byte /
@@ -63,8 +64,8 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer largeFlowRate,
 			Integer smallFlowRate,
 			Integer burstFlowSize,
-			Integer bestEffortLinkCapacity) {
-		super(bestEffortLinkCapacity,
+			Integer priorityLinkCapacity) {
+		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfSmallFlows,
@@ -72,7 +73,8 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 				numOfBurstFlows,
 				largeFlowRate,
 				smallFlowRate,
-				burstFlowSize);
+				burstFlowSize,
+				priorityLinkCapacity);
 	}
 
 	public RandomFlowGenerator(Integer linkCapacity,
@@ -80,13 +82,13 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer packetSize,
 			Integer numOfLargeFlows,
 			Integer largeFlowRate,
-			Integer bestEffortLinkCapacity) {
+			Integer priorityLinkCapacity) {
 		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfLargeFlows,
 				largeFlowRate,
-				bestEffortLinkCapacity);
+				priorityLinkCapacity);
 	}
 
 	@Override
@@ -205,5 +207,10 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 	public Integer getNumOfFlows() {
 	    return numOfBurstFlows + numOfLargeFlows + numOfSmallFlows;
 	}
+	
+	@Override
+    public double getStartTimeOfLargeFlow(FlowId flowId) {
+        return 0.;
+    }
 
 }

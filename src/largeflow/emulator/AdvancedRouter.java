@@ -31,6 +31,7 @@ public class AdvancedRouter implements Router {
     private String name;
     
     private Integer totalInboundCapacity;
+    private Integer totalOutboundCapacity;
     private ArrayList<Integer> inboundCapacities;
     private ArrayList<Integer> outboundCapacities;
 
@@ -63,6 +64,7 @@ public class AdvancedRouter implements Router {
         inboundCapacities.add(inboundCapacity);
         outboundCapacities.add(outboundCapacity);
         totalInboundCapacity = inboundCapacity;
+        totalOutboundCapacity = outboundCapacity;
 
         postQdDetectors.add(null);
 
@@ -102,6 +104,11 @@ public class AdvancedRouter implements Router {
         totalInboundCapacity = 0;
         for (Integer inboundCapacity : inboundCapacities) {
             totalInboundCapacity += inboundCapacity;
+        }
+        
+        totalOutboundCapacity = 0;
+        for (Integer outboundCapacity : outboundCapacities) {
+            totalOutboundCapacity += outboundCapacity;
         }
 
         // set post-QD detectors as all null
@@ -146,6 +153,10 @@ public class AdvancedRouter implements Router {
 
     public Integer getTotalInboundCapacity() {
         return totalInboundCapacity;
+    }
+    
+    public Integer getTotalOutboundCapacity() {
+        return totalOutboundCapacity;
     }
 
     public Integer getOutboundCapacity(Integer outboundIndex) {

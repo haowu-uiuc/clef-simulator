@@ -113,9 +113,9 @@ public class LoggerTest {
             for (int rate = 1000; rate <= 3000; rate += 1000) {
                 logger.logBaseDetectorBlackList(baseDetector, rate, round);
                 for (int counter = 100; counter <= 3000; counter += 1000) {
-                    logger.logRouterBlackList(router1, rate, counter, round);
-                    logger.logRouterBlackList(router2, rate, counter, round);
-                    logger.logRouterBlackList(router3, rate, counter, round);
+                    logger.logRouterBlackList(router1, rate, counter, round, baseDetector);
+                    logger.logRouterBlackList(router2, rate, counter, round, baseDetector);
+                    logger.logRouterBlackList(router3, rate, counter, round, baseDetector);
                 }
             }
         }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.MaxDamageEvaluatorResult;
+import largeflow.flowgenerator.UniAttackRateFlowGenerator;
 
 /**
  * Calculate the maximum damage could be caused by all attack flows, among

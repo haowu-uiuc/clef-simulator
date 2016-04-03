@@ -1,4 +1,4 @@
-package largeflow.emulator;
+package largeflow.flowgenerator;
 
 // flow generator that only generates attack flows with the same attack rate
 public abstract class UniAttackRateFlowGenerator extends AttackFlowGenerator {
@@ -48,8 +48,8 @@ public abstract class UniAttackRateFlowGenerator extends AttackFlowGenerator {
 			Integer largeFlowRate,
 			Integer smallFlowRate,
 			Integer burstFlowSize,
-			Integer bestEffortLinkCapacity) {
-		super(bestEffortLinkCapacity,
+			Integer priorityLinkCapacity) {
+		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfSmallFlows,
@@ -57,7 +57,8 @@ public abstract class UniAttackRateFlowGenerator extends AttackFlowGenerator {
 				numOfBurstFlows,
 				largeFlowRate,
 				smallFlowRate,
-				burstFlowSize);
+				burstFlowSize,
+				priorityLinkCapacity);
 	}
 
 	public UniAttackRateFlowGenerator(Integer linkCapacity,
@@ -65,13 +66,13 @@ public abstract class UniAttackRateFlowGenerator extends AttackFlowGenerator {
 			Integer packetSize,
 			Integer numOfLargeFlows,
 			Integer largeFlowRate,
-			Integer bestEffortLinkCapacity) {
+			Integer priorityLinkCapacity) {
 		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfLargeFlows,
 				largeFlowRate,
-				bestEffortLinkCapacity);
+				priorityLinkCapacity);
 	}
 
 	/**
@@ -84,4 +85,5 @@ public abstract class UniAttackRateFlowGenerator extends AttackFlowGenerator {
 	public Integer getAttackRate() {
 	    return largeFlowRate;
 	}
+	
 }

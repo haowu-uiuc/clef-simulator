@@ -8,11 +8,8 @@ import largeflow.egregiousdetector.EgregiousFlowDetector;
 import largeflow.emulator.Logger;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.MaxOveruseDamageEvaluator;
-import largeflow.emulator.RandomFlowGenerator;
-import largeflow.emulator.RealAttackFlowGenerator;
-import largeflow.emulator.RealTrafficFlowGenerator;
-import largeflow.emulator.UniAttackRateFlowGenerator;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.RealAttackFlowGenerator;
+import largeflow.flowgenerator.RealTrafficFlowGenerator;
 
 /**
  * Using real traffic with large flows
@@ -95,12 +92,17 @@ public class Main_MaxDamageEvaluator_20151018 {
 		realTrafficFlowGenerator.setCompactTimes(compactTimes);
 		realTrafficFlowGenerator.generateFlows();
 		
-		RealAttackFlowGenerator flowGenerator = new RealAttackFlowGenerator(linkCapacity,
-				timeInterval,
-				largeFlowPacketSize,
-				numOfLargeFlows,
-				largeFlowRate,
-				realTrafficFlowGenerator);
+        RealAttackFlowGenerator flowGenerator = new RealAttackFlowGenerator(
+                linkCapacity,
+                timeInterval,
+                largeFlowPacketSize,
+                numOfLargeFlows,
+                largeFlowRate,
+                0,
+                1000,
+                0,
+                realTrafficFlowGenerator.getNumOfFlows(),
+                realTrafficFlowGenerator);
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 
 		// for leaky bucket

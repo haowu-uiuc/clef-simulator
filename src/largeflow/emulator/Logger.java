@@ -13,6 +13,7 @@ import java.util.Map;
 
 import largeflow.datatype.Damage;
 import largeflow.datatype.FlowId;
+import largeflow.flowgenerator.AttackFlowGenerator;
 import largeflow.utils.GenericUtils;
 
 public class Logger implements Closeable, Flushable {
@@ -191,7 +192,10 @@ public class Logger implements Closeable, Flushable {
                 String.valueOf(damage.FN),
                 String.valueOf(damage.TP),
                 String.valueOf(damage.perFlowDamage),
-                String.valueOf(damage.totalDamage));
+                String.valueOf(damage.totalDamage),
+                String.valueOf(damage.BE_damage),
+                String.valueOf(damage.FP_damage),
+                String.valueOf(damage.QD_drop_damage));
         writer.write(String.join("\t", valueList) + "\n");
     }
 	
@@ -207,7 +211,7 @@ public class Logger implements Closeable, Flushable {
     }
 	
 	public void logRouterBlackList(Router router, int atkRate,
-	        int numOfCounters, int round) throws Exception {
+	        int numOfCounters, int round, Detector baseDetector) throws Exception {
 	    File dir = new File(expDir + "/blacklist/" + router.name() + "/" + round);
 	    if (!dir.exists()) {
 	        dir.mkdirs();
@@ -215,7 +219,7 @@ public class Logger implements Closeable, Flushable {
 	    
         BufferedWriter writer = new BufferedWriter(new FileWriter(
                 new File(dir + "/" + atkRate + "-" + numOfCounters + ".txt")));
-        
+                
         // log blacklist of the router
         for (Map.Entry<FlowId, Double> entry : router.getBlackList().entrySet()) {
             Integer droppedTraffic;
@@ -223,7 +227,11 @@ public class Logger implements Closeable, Flushable {
                 droppedTraffic = 0;
             }
             
-            writer.write(entry.getKey() + " : " + entry.getValue() + " " + droppedTraffic);
+            if (baseDetector.getBlackList().containsKey(entry.getKey())) {
+                writer.write(entry.getKey() + " : " + entry.getValue() + " " + droppedTraffic + " TP");
+            } else {
+                writer.write(entry.getKey() + " : " + entry.getValue() + " " + droppedTraffic + " FP");   
+            }
             writer.newLine();
         }
         
@@ -248,6 +256,31 @@ public class Logger implements Closeable, Flushable {
         
         writer.close();
     }
+	
+	public void logRouterTotalTrafficVolume(Router router, 
+	        int atkRate, int numOfCounters, int round,
+	        long attackReservedTraffic, long preQdRealTraffic,
+	        long postQdAttackTraffic, long postQdRealTraffic, 
+	        long blockedRealTraffic, long outboundCapacity) throws Exception {
+	    BufferedWriter writer = getTotalTrafficWriter(router.name());
+        if (writer == null) {
+            throw new Exception(
+                    "Cannot retrieve damage log writer for logger in class "
+                            + this.getClass().getName());
+        }
+
+        List<String> valueList = Arrays.asList(
+                String.valueOf(round),
+                String.valueOf(atkRate),
+                String.valueOf(numOfCounters),
+                String.valueOf(attackReservedTraffic),
+                String.valueOf(preQdRealTraffic),
+                String.valueOf(postQdAttackTraffic),
+                String.valueOf(postQdRealTraffic),
+                String.valueOf(blockedRealTraffic),
+                String.valueOf(outboundCapacity));
+        writer.write(String.join("\t", valueList) + "\n");
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -295,6 +328,31 @@ public class Logger implements Closeable, Flushable {
             writer.write("number_of_counters\t");
             List<String> columnNameList = Damage.getTitleList();            
             writer.write(String.join("\t", columnNameList) + "\n");
+        } else {
+            writer = writerMap.get(key);
+        }
+
+        return writer;
+    }
+    
+    private BufferedWriter getTotalTrafficWriter(String writerKey) throws IOException {
+        BufferedWriter writer;
+        String key = writerKey  + "_total_traffic";
+        if (!writerMap.containsKey(key)) {
+            writer = new BufferedWriter(new FileWriter(new File(
+                    expDir.toString() + "/" + key + ".txt")));
+            writerMap.put(key, writer);
+
+            writer.write("round\t");
+            writer.write("attack_rate\t");
+            writer.write("number_of_counters\t");
+            writer.write("attack_reservation\t");
+            writer.write("pre_QD_real_traffic\t");
+            writer.write("post_QD_attack_traffic\t");
+            writer.write("post_QD_real_traffic\t");
+            writer.write("blocked_real_traffic\t");
+            writer.write("outbound_link_capacity\n");
+            
         } else {
             writer = writerMap.get(key);
         }

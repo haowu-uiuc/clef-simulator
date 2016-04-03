@@ -1,4 +1,4 @@
-package largeflow.emulator;
+package largeflow.flowgenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.Random;
 
 import largeflow.datatype.Packet;
+import largeflow.emulator.Logger;
+import largeflow.emulator.PacketReader;
+import largeflow.emulator.PacketReaderFactory;
 
 public abstract class FlowGenerator {
 	
 	protected Integer linkCapacity; // Byte
 	protected Integer priorityLinkCapacity; // Byte
-	protected Integer bestEffortLinkCapacity; // Byte
 	
 	protected Integer timeInterval; // seconds, length of packet stream
 
@@ -28,7 +30,6 @@ public abstract class FlowGenerator {
 			Integer timeInterval) {
 		this.linkCapacity = linkCapacity;
 		this.timeInterval = timeInterval;
-		this.bestEffortLinkCapacity = 0;
 		this.priorityLinkCapacity = this.linkCapacity;
 
 		randGenerator = new Random((long) (Long.MAX_VALUE * Math.random()));
@@ -36,11 +37,10 @@ public abstract class FlowGenerator {
 	
 	public FlowGenerator(Integer linkCapacity,
 			Integer timeInterval,
-			Integer bestEffortLinkCapacity) {
+			Integer priorityLinkCapacity) {
 		this.linkCapacity = linkCapacity;
 		this.timeInterval = timeInterval;
-		this.bestEffortLinkCapacity = bestEffortLinkCapacity;
-		this.priorityLinkCapacity = this.linkCapacity - bestEffortLinkCapacity;
+		this.priorityLinkCapacity = priorityLinkCapacity;
 		
 		randGenerator = new Random((long) (Long.MAX_VALUE * Math.random()));
 	}
@@ -66,7 +66,6 @@ public abstract class FlowGenerator {
 				+ this.getClass().getName() + "\n");
 		logger.logConfigMsg("Link Capacity: " + linkCapacity + "\n");
 		logger.logConfigMsg("Priority Link Capacity: " + priorityLinkCapacity + " Byte\n");
-		logger.logConfigMsg("Best Effort Link Capacity: " + bestEffortLinkCapacity + " Byte\n");
 		logger.logConfigMsg("Time Period: " + timeInterval + " sec\n");
 	}
 	
@@ -92,10 +91,6 @@ public abstract class FlowGenerator {
 	
 	public int getLinkCapacity() {
 		return linkCapacity;
-	}
-
-	public int getBestEffortLinkCapacity() {
-		return bestEffortLinkCapacity;
 	}
 
 	public int getPriorityLinkCapacity() {
@@ -127,6 +122,12 @@ public abstract class FlowGenerator {
 		if (outputFile == null) {
 			throw new Exception("Please set output file");
 		}
+	}
+	
+	public void deleteOutputFile() {
+	    if (outputFile != null && outputFile.exists()) {
+	        outputFile.delete();
+	    }
 	}
 	
 }

@@ -9,11 +9,11 @@ import java.util.Set;
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 import largeflow.egregiousdetector.EgregiousFlowDetector;
-import largeflow.emulator.AttackFlowGenerator;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.PacketReader;
 import largeflow.emulator.PacketReaderFactory;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.AttackFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 import org.junit.After;
 import org.junit.AfterClass;

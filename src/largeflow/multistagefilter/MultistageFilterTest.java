@@ -14,11 +14,11 @@ import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 import largeflow.emulator.Detector;
 import largeflow.emulator.Logger;
-import largeflow.emulator.AttackFlowGenerator;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.PacketReader;
 import largeflow.emulator.PacketReaderFactory;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.AttackFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 public class MultistageFilterTest {
 

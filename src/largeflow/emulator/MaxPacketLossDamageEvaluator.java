@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import largeflow.datatype.Damage;
+import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.flowgenerator.RealAttackFlowGenerator;
 
 /**
  * Calculate the maximum damage could be caused by all attack flows, among
@@ -32,14 +34,13 @@ public class MaxPacketLossDamageEvaluator {
     private int numOfCounterInterval;
     private int numOfRepeatRounds;
     private int maxPacketSize;
-    // private int linkCapacity; // = priorityLinkCapacity +
-    // bestEffortLinkCapacity
-    // private int priorityLinkCapacity;
-    // private int bestEffortLinkCapacity;
     
     private Long preQdRealTrafficVolume;
     private HashMap<String, Long> postQdAttackTrafficMap;
     private HashMap<String, Long> postQdRealTrafficMap;
+    private HashMap<String, Long> blockedRealTrafficMap;
+    private HashMap<String, Long> preQdAttackResvMap;   
+        // {reservation bandwidth} * (t_block - t_start)
     
     private Logger logger;
 
@@ -56,6 +57,8 @@ public class MaxPacketLossDamageEvaluator {
         
         postQdAttackTrafficMap = new HashMap<>();
         postQdRealTrafficMap = new HashMap<>();
+        blockedRealTrafficMap = new HashMap<>();
+        preQdAttackResvMap = new HashMap<>();
         preQdRealTrafficVolume = (long)0;
     }
 
@@ -74,6 +77,8 @@ public class MaxPacketLossDamageEvaluator {
         
         postQdAttackTrafficMap = new HashMap<>();
         postQdRealTrafficMap = new HashMap<>();
+        blockedRealTrafficMap = new HashMap<>();
+        preQdAttackResvMap = new HashMap<>();
         preQdRealTrafficVolume = (long)0;
     }
 
@@ -117,10 +122,6 @@ public class MaxPacketLossDamageEvaluator {
         return flowGenerator.getPriorityLinkCapacity();
     }
 
-    public int getBestEffortLinkCapacity() {
-        return flowGenerator.getBestEffortLinkCapacity();
-    }
-
     public void setBaseDetector(Detector baseDetector) {
         this.baseDetector = baseDetector;
     }
@@ -129,6 +130,7 @@ public class MaxPacketLossDamageEvaluator {
         routersToEvalList.add(router);
         postQdAttackTrafficMap.put(router.name(), (long)0);
         postQdRealTrafficMap.put(router.name(), (long)0);
+        blockedRealTrafficMap.put(router.name(), (long)0);
     }
 
     public void setFlowGenerator(RealAttackFlowGenerator flowGenerator) {
@@ -185,6 +187,8 @@ public class MaxPacketLossDamageEvaluator {
                 logger.logRouterDamage(router,
                         "Round # " + round + "\n");                
             }
+            
+            flowGenerator.reset();  // re-generate real traffic in each round.
 
             int i = 0;
             for (int atkRate = minAtkRate; 
@@ -192,7 +196,8 @@ public class MaxPacketLossDamageEvaluator {
                     atkRate += atkRateInterval) {
                 flowGenerator.setAttackRate(atkRate);
                 flowGenerator.generateFlows();
-                preQdRealTrafficVolume = flowGenerator.getRealTrafficVolume();
+                preQdRealTrafficVolume = flowGenerator.getUnderUseRealTrafficVolume()
+                        + flowGenerator.getFullRealTrafficVolume();
                 
                 PacketReader packetReader = PacketReaderFactory
                         .getPacketReader(flowGenerator.getOutputFile());
@@ -217,14 +222,20 @@ public class MaxPacketLossDamageEvaluator {
                         for(Router router : routersToEvalList){
                             router.reset();
                         }
-                        resetOutputTraffic();
+                        resetTrafficMap();
                         
                         // run routers and base detector
                         Packet packet;
                         while((packet = packetReader.getNextPacket()) != null){
                             baseDetector.processPacket(packet);
                             for(AdvancedRouter router : routersToEvalList){
-                                router.processPacket(packet);
+                                if (!router.processPacket(packet) 
+                                        && !flowGenerator.isLargeFlow(packet.flowId) ) {
+                                    // accumulate the blocked real traffic (legitimate traffic), 
+                                    // i.e. FP traffic
+                                    long value = blockedRealTrafficMap.get(router.name());
+                                    blockedRealTrafficMap.put(router.name(), value + packet.size);
+                                }
                                 accumulateOutputTraffic(router);
                             }
                         }
@@ -232,6 +243,18 @@ public class MaxPacketLossDamageEvaluator {
                         for(AdvancedRouter router : routersToEvalList){
                             router.processEnd();
                             accumulateOutputTraffic(router);
+                            calculateAtkReservationVolume(router);
+
+                            logger.logRouterTotalTrafficVolume(router,
+                                    atkRate,
+                                    numOfCounters,
+                                    round,
+                                    preQdAttackResvMap.get(router.name()),
+                                    preQdRealTrafficVolume,
+                                    postQdAttackTrafficMap.get(router.name()),
+                                    postQdRealTrafficMap.get(router.name()),
+                                    blockedRealTrafficMap.get(router.name()),
+                                    router.getTotalOutboundCapacity());
                         }
                         
                         packetReader.close();
@@ -239,12 +262,20 @@ public class MaxPacketLossDamageEvaluator {
                         // calculate the damage for each detector and log it
                         for (AdvancedRouter router : routersToEvalList) {
                             // Calculate the damage for each router
-                            PacketLossDamageCalculator damageCalculator = new PacketLossDamageCalculator();
-                            Damage damage = damageCalculator.getDamage(baseDetector, router, flowGenerator);
-                            damage = new Damage();
-
+                            PacketLossDamageCalculator damageCalculator = 
+                                    new PacketLossDamageCalculator(baseDetector, router, flowGenerator);
+                            
+                            // TODO: modify damage calculator
+                            Damage damage = damageCalculator.getMeasuredDamage(
+                                    preQdAttackResvMap.get(router.name()),
+                                    preQdRealTrafficVolume,
+                                    postQdAttackTrafficMap.get(router.name()),
+                                    postQdRealTrafficMap.get(router.name()),
+                                    blockedRealTrafficMap.get(router.name()),
+                                    router.getTotalOutboundCapacity());
+                            
                             logger.logRouterDamage(router, atkRate, numOfCounters, damage);
-                            logger.logRouterBlackList(router, atkRate, numOfCounters, round);
+                            logger.logRouterBlackList(router, atkRate, numOfCounters, round, baseDetector);
                         }
                         
                         if (!baseDetectorLogged) {
@@ -280,12 +311,35 @@ public class MaxPacketLossDamageEvaluator {
             }
         }
     }
-    
-    private void resetOutputTraffic() {
+        
+    private void resetTrafficMap() {
         for (AdvancedRouter router : routersToEvalList) {
             postQdAttackTrafficMap.put(router.name(), (long) 0);
             postQdRealTrafficMap.put(router.name(), (long) 0);
+            preQdAttackResvMap.put(router.name(), (long) 0);
+            blockedRealTrafficMap.put(router.name(), (long) 0);
         }
+    }
+    
+    private void calculateAtkReservationVolume(AdvancedRouter router) {
+        long volume = 0;
+        for (FlowId flowId : flowGenerator.getAttackFlowIdSet()) {
+            // for every TP which is large flow
+            if (!flowGenerator.isLargeFlow(flowId)) {
+                continue;
+            }
+            
+            Double startTime = flowGenerator.getStartTimeOfLargeFlow(flowId);
+            Double blockTime = router.getBlackList().get(flowId);
+            if (blockTime == null) {
+                // set the end of simulation interval 
+                // as the block time for now
+                blockTime = flowGenerator.getTraceLength();
+            }
+            
+            volume += (blockTime - startTime) * flowGenerator.getPerFlowReservation(); 
+        }
+        preQdAttackResvMap.put(router.name(), volume);
     }
 
 }

@@ -7,9 +7,9 @@ import largeflow.eardet.EARDet;
 import largeflow.emulator.Logger;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.MaxOveruseDamageEvaluator;
-import largeflow.emulator.RandomFlowGenerator;
-import largeflow.emulator.UniAttackRateFlowGenerator;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.RandomFlowGenerator;
+import largeflow.flowgenerator.UniAttackRateFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 public class Main_MaxDamageEvaluator {
 

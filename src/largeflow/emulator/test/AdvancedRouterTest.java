@@ -18,7 +18,7 @@ import largeflow.emulator.FilePacketReader;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.Logger;
 import largeflow.emulator.PacketReader;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 public class AdvancedRouterTest {
 

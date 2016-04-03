@@ -89,6 +89,38 @@ public class LeakyBucketDetector extends Detector {
 
 		return true;
 	}
+	
+	/**
+	 * Tell whether this packet is going to violate the flow spec 
+	 * (caught by leaky bucket detector)
+	 * This function will not change status of the detector.
+	 * @param packet
+	 * @return false => violate the flow spec, true => not
+	 */
+	public boolean tryPacket(Packet packet) {
+	    
+	    if (!flowToBucketMap.containsKey(packet.flowId)) {
+	        return true;
+	    }
+	    
+        int curDecrement = (int) Math.round((double) packet.size / (double) linkCapacity
+                * (double) rate_th);
+        
+        int decrement = (int) Math.round((packet.time - flowToLastPacketEndTimeMap
+                .get(packet.flowId)) * (double) rate_th);
+        int bucketValue = flowToBucketMap.get(packet.flowId) - decrement;
+        if (bucketValue < 0) {
+            bucketValue = 0;
+        }
+        
+        bucketValue = bucketValue + packet.size - curDecrement;
+        
+        if (bucketValue > burst_th) {
+            return false;
+        }
+	    
+	    return true;
+	}
 
 	/**
 	 * this method does nothing for leaky bucket detector

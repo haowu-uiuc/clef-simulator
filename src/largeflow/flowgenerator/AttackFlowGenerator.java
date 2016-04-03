@@ -1,8 +1,9 @@
-package largeflow.emulator;
+package largeflow.flowgenerator;
 
 import java.io.IOException;
 
 import largeflow.datatype.FlowId;
+import largeflow.emulator.Logger;
 
 public abstract class AttackFlowGenerator extends FlowGenerator {
 	
@@ -15,7 +16,7 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 	protected Integer largeFlowRate; // rate of large flows
 	protected Integer smallFlowRate; // rate of small flows
 	protected Integer burstFlowSize; // size of each burst
-
+	
 	public AttackFlowGenerator() {
 		super();
 	}
@@ -40,7 +41,6 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 		this.largeFlowRate = largeFlowRate;
 		this.smallFlowRate = smallFlowRate;
 		this.burstFlowSize = burstFlowSize;
-		this.bestEffortLinkCapacity = 0;
 		this.priorityLinkCapacity = this.linkCapacity;
 	}
 
@@ -58,7 +58,6 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 		this.largeFlowRate = largeFlowRate;
 		this.smallFlowRate = 0;
 		this.burstFlowSize = 0;
-		this.bestEffortLinkCapacity = 0;
 		this.priorityLinkCapacity = this.linkCapacity;
 	}
 	
@@ -71,8 +70,8 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 			Integer largeFlowRate,
 			Integer smallFlowRate,
 			Integer burstFlowSize,
-			Integer bestEffortLinkCapacity) {
-		super(linkCapacity, timeInterval, bestEffortLinkCapacity);
+			Integer priorityLinkCapacity) {
+		super(linkCapacity, timeInterval, priorityLinkCapacity);
 		
 		this.largeFlowPacketSize = packetSize;
 		this.smallFlowPacketSize = packetSize;
@@ -90,8 +89,8 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 			Integer packetSize,
 			Integer numOfLargeFlows,
 			Integer largeFlowRate,
-			Integer bestEffortLinkCapacity) {
-		super(linkCapacity, timeInterval, bestEffortLinkCapacity);
+			Integer priorityLinkCapacity) {
+		super(linkCapacity, timeInterval, priorityLinkCapacity);
 		
 		this.largeFlowPacketSize = packetSize;
 		this.numOfSmallFlows = 0;
@@ -150,6 +149,8 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 	abstract public boolean isSmallFlow(FlowId flowId);
 	
 	abstract public boolean isBurstFlow(FlowId flowId);
+	
+	abstract public double getStartTimeOfLargeFlow(FlowId flowId);
 		
 	protected void parameterCheck() throws Exception {
 		super.parameterCheck();

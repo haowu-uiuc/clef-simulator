@@ -6,11 +6,11 @@ import java.io.File;
 
 import largeflow.datatype.Packet;
 import largeflow.eardet.EARDet;
-import largeflow.emulator.AttackFlowGenerator;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.PacketReader;
 import largeflow.emulator.PacketReaderFactory;
-import largeflow.emulator.UniformFlowGenerator;
+import largeflow.flowgenerator.AttackFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 import org.junit.After;
 import org.junit.AfterClass;

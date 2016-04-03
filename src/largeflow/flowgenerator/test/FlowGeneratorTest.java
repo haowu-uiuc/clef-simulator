@@ -1,12 +1,12 @@
-package largeflow.emulator.test;
+package largeflow.flowgenerator.test;
 
 import java.io.File;
 
-import largeflow.emulator.RandomFlowGenerator;
-import largeflow.emulator.UniformFlowGenerator;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import largeflow.flowgenerator.RandomFlowGenerator;
+import largeflow.flowgenerator.UniformFlowGenerator;
 
 public class FlowGeneratorTest {
 
