@@ -6,7 +6,8 @@ import java.util.List;
 
 public class Damage {
 
-    static private List<String> titleList = Arrays.asList("FP",
+    static private List<String> titleList = Arrays.asList(
+            "FP",
             "FN",
             "TP",
             "perFlowDamage",

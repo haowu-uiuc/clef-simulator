@@ -41,10 +41,14 @@ public abstract class Detector {
 		logger.logConfigMsg("Detector Name: " + name() + "\n");
 	}
 
-	// process each packet pass through the detector,
-	// if the packet is blocked by detector, return false, otherwise return true
-	// also record caught large flow into blacklist map : {flow Id} -> {catch
-	// time}
+	/**
+	 * process each packet pass through the detector,
+	 * if the packet is blocked by detector, return false, otherwise return true
+	 * also record caught large flow into blacklist map : {flow Id} -> {catch time}
+	 * @param packet
+	 * @return true => pass the detector, flase => blocked by detector
+	 * @throws Exception
+	 */
 	abstract public boolean processPacket(Packet packet) throws Exception;
 
 	// set the number of counters used by detector. Namely how much memory used.

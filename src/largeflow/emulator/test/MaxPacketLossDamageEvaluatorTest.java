@@ -162,6 +162,7 @@ public class MaxPacketLossDamageEvaluatorTest {
 		evaluator.setFlowGenerator(flowGenerator);
 		evaluator.setBaseDetector(baseDetector);
 		evaluator.addRouter(router1);
+		evaluator.setStartRound(2);
 		evaluator.setNumOfRepeatRounds(numOfRepeatRounds);
 		evaluator.run();
         flowGenerator.deleteOutputFile();

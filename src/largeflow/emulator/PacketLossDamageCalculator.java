@@ -49,8 +49,8 @@ public class PacketLossDamageCalculator {
         
         Long damage_BE = BE_theo - BE_actual;
         if (damage_BE < 0) {
+            System.out.println("damage_BE is less than zero! damage_BE = " + damage_BE);
             damage_BE = (long) 0;
-            System.out.println("damage_BE is less than zero!");
         }
         Long damage_Priority = preQdRealTrafficVolume - postQdRealTrafficVolume;
         

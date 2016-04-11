@@ -20,6 +20,8 @@ public class EgregiousFlowDetector extends Detector {
 	private Integer fanout; // size of bucket lists in the tree
 	private Integer maxDepth; // maximum depth of the tree of bucket arrays
 	private Integer numOfCounters; // max number of buckets can used in the tree
+	
+	private Integer numOfFlows = -1; // number of priority flows in the link 
 
 	// calculated parameters
 	private Integer numOfBranches; // number of branches to have from the root
@@ -34,6 +36,7 @@ public class EgregiousFlowDetector extends Detector {
 	// reservation information
 	private ReservationDatabase resDb; // the system to query the reservation
 										// for each bandwidth
+	private boolean debug = false;
 
 	public EgregiousFlowDetector(String detectorName,
 			Integer gamma,
@@ -49,6 +52,8 @@ public class EgregiousFlowDetector extends Detector {
 		this.burst = burst;
 		this.period = period;
 
+		numOfFlows = linkCapacity / gamma;    // default value
+		
 		minPeriod = calculateMinPeriod(burst, gamma);
 		if (period <= minPeriod) {
 			throw new Exception("Period is too small to tolerate the burst.");
@@ -59,17 +64,21 @@ public class EgregiousFlowDetector extends Detector {
 
 		optimizeConfig(numOfCounters);
 
-		if (numOfBranches < 1) {
-			throw new Exception("Number of branches is below 1. Need more counters");
-		}
-
 		// init states
 		timestampOfPeriodBegin = 0.0;
 		timestampOfPeriodEnd = timestampOfPeriodBegin + period;
-		tree = new BucketListTree(maxDepth,
-				fanout,
-				numOfBranches,
-				resDb);
+		initTree();
+	}
+	
+	private void initTree() throws Exception {
+	    if (numOfBranches < 1) {
+            throw new Exception("Number of branches is below 1. Need more counters");
+        }
+	    
+	    tree = new BucketListTree(maxDepth,
+                fanout,
+                numOfBranches,
+                resDb);
 	}
 
 	@Override
@@ -188,26 +197,20 @@ public class EgregiousFlowDetector extends Detector {
 				+ getNumOfBranches() + "\n");
 	}
 
-	private Integer calculateMaxDepth(Integer numOfFlows,
-			Integer fanout) {
-		return (int) (Math.log((double) numOfFlows) / Math.log((double) fanout)) + 1;
+	public void setEstimatedNumOfFlows(int numOfFlows) throws Exception {
+	    this.numOfFlows = numOfFlows;
+	    initTree();
 	}
-
-	private Integer calculateNumOfBranches(Integer numOfCounters,
-			Integer fanout,
-			Integer maxDepth) {
-		if (maxDepth == 1) {
-			return 0;
-		}
-		
-		return (numOfCounters - fanout) / (fanout * (maxDepth - 1));
-	}
-
-	private Integer estimateNumOfFlows() {
+	
+	private Integer estimateNumOfFlows() throws Exception {
 		// assume the reservation for all flows is gamma (large flow rate)
 		// so there are supposed to be (linkCapacity / gamma) flows.
 		// TODO: modify this
-		return linkCapacity / gamma;
+	    if (numOfFlows <= 0) {
+	        throw new Exception("Num of estimated flows has not been set!");
+	    }
+//		return linkCapacity / gamma;
+	    return numOfFlows;
 	}
 
 	private Double calculateMinPeriod(Integer burst,
@@ -217,7 +220,7 @@ public class EgregiousFlowDetector extends Detector {
 		return (double) burst / (double) gamma;
 	}
 
-	private void optimizeConfig(Integer numOfCounters) {
+	private void optimizeConfig(Integer numOfCounters) throws Exception {
 		int optf = -1;
 		int optd = -1;
 		int optk = -1;
@@ -241,11 +244,36 @@ public class EgregiousFlowDetector extends Detector {
 				maxOptTarget = optTarget;
 			}
 		}
-
+		
 		fanout = optf;
 		maxDepth = optd;
 		numOfBranches = optk;
-		System.out.println("N = " + N + ", f = " + optf + ", d = " + optd + ", k = " + optk);
+		if (debug) {
+		    System.out.println("N = " + N + ", f = " + optf + ", d = " + optd + ", k = " + optk);
+	    }
+	}
+	
+    private Integer calculateMaxDepth(Integer numOfFlows,
+            Integer fanout) {
+        return (int) (Math.log((double) numOfFlows) / Math.log((double) fanout)) + 1;
+    }
+
+    private Integer calculateNumOfBranches(Integer numOfCounters,
+            Integer fanout,
+            Integer maxDepth) {
+        if (maxDepth == 1) {
+            return 0;
+        }
+        
+        return (numOfCounters - fanout) / (fanout * (maxDepth - 1));
+    }
+	
+	public void enableDebug() {
+	    debug = true;
+	}
+	
+	public void disableDebug() {
+	    debug = false;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.emulator.NetworkConfig;
 
 class BucketListTree {
 
@@ -107,14 +108,17 @@ class BucketListTree {
 			// return the flows assigned to the bucket.
 			for (int bucketIndex = 0; bucketIndex < bucketList.size(); bucketIndex++) {
 				Bucket bucket = bucketList.get(bucketIndex);
+				List<FlowId> bucketFlows = bucketList.getFlowsInBucket(bucketIndex);
+				        
 				int value = bucket.getValue();
 				int reservation = bucket.getReservation();
-				if (value > (int) (reservation * timeInterval) + 1) {
+                if (bucketFlows.size() == 1
+                        && value > (int) (reservation * timeInterval) + NetworkConfig.maxPacketSize) {
 					// the +1 is to raise a little reservation so that avoid
 					// some false positive at corner
 					// put all flows in this bucket into the large flow list
-					largeFlowList.addAll(bucketList
-							.getFlowsInBucket(bucketIndex));
+                    // Only consider bucket with one flow to avoid FP
+					largeFlowList.addAll(bucketFlows);
 				}
 			}
 

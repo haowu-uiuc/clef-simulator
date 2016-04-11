@@ -53,15 +53,15 @@ public class FMFDetector extends MultistageFilter {
 	}
 	
 	/**
-	 * return true: the flow of the packet is already in the blacklist;
-	 * return false: otherwise
+	 * return false: the flow of the packet is already in the blacklist;
+	 * return true: otherwise
 	 */
 	@Override
 	public boolean processPacket(Packet packet) throws Exception {
 		
 		// check whether the flow is already in the blacklist
 		if (blackList.containsKey(packet.flowId)) {
-			 return true;
+			 return false;
 		}
 		
 		double packetStartTime = packet.time;
@@ -78,7 +78,7 @@ public class FMFDetector extends MultistageFilter {
 			checkAllFlows((lastPeriod + 1) * T);
 			resetBucketList();
 			if (blackList.containsKey(packet.flowId)) {
-				 return true;
+				 return false;
 			}
 		}
 		
@@ -110,7 +110,7 @@ public class FMFDetector extends MultistageFilter {
 			currentPeriod = endPeriod;
 
 			if (blackList.containsKey(packet.flowId)) {
-				 return true;
+				 return false;
 			}
 			
 			// add the other part of the packet into the next period
@@ -118,13 +118,13 @@ public class FMFDetector extends MultistageFilter {
 			processPacketForAllStages(secondHalfPacket);									
 		}
 
-		return false;
+		return true;
 	}
 	
 
 	/**
-	 * return true: the flow of the packet is already in the blacklist;
-	 * return false: otherwise
+	 * return false: the flow of the packet is already in the blacklist;
+	 * return true: otherwise
 	 */
 	@Deprecated
 	public boolean processPacketUseNextPacketTime(FutureInfoPacket packet) throws Exception {
@@ -197,7 +197,7 @@ public class FMFDetector extends MultistageFilter {
 			currentPeriod = endPeriod;
 		}
 
-		return isInBlackList;
+		return !isInBlackList;
 	}
 	
 	private void initState() {
@@ -265,6 +265,11 @@ public class FMFDetector extends MultistageFilter {
 			
 			List<FlowId> flowIds = hashFuncs.get(0).getKeys(i);
 			for (FlowId flowId : flowIds) {
+			    if (blackList.containsKey(flowId)) {
+			        // if the flow is already in blacklist, skip
+			        continue;
+			    }
+			    
 				boolean shouldBlackList = true;
 				for (int j = 0; j < numOfStages; j++) {
 					int bucketIndex = hashFuncs.get(j).getHashCode(flowId);
@@ -276,7 +281,7 @@ public class FMFDetector extends MultistageFilter {
 				
 				if (shouldBlackList) {
 					// blacklist the flowId
-					blackList.put(flowId, checkTime);
+		            blackList.put(flowId, checkTime);
 				}
 				
 			}

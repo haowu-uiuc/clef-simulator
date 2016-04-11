@@ -90,6 +90,8 @@ public class EgregiousFlowDetectorTest {
 				period,
 				linkCapacity,
 				numOfCounters);
+	    detector.setEstimatedNumOfFlows(linkCapacity / gamma);
+
 		LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector("test_leaky_bucket_detector",
 				burst,
 				gamma,

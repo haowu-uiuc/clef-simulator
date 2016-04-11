@@ -91,7 +91,6 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 				largeFlowPacketSize,
 				numOfLargeFlows,
 				largeFlowRate);
-		attackFlowGenerator.setOutputFile(new File("./" + this.hashCode() + "tmpAtkflows.txt"));
 	}
 	
 	private void initLegitimateFlowGenerator() {
@@ -100,9 +99,17 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
                 fullRealFlowPacketSize,
                 numOfFullRealFlows,
                 perFlowReservation);
-        legitimateFlowGenerator.setOutputFile(new File("./" + this.hashCode() + "tmpLegalflows.txt"));
     }
 
+	@Override
+	public void setOutputFile(File outputFile) {
+	    super.setOutputFile(outputFile);
+	    attackFlowGenerator.setOutputFile(new File(outputFile.getParentFile() + "/"
+                + this.hashCode() + "tmpAtkflows.txt"));
+	    legitimateFlowGenerator.setOutputFile(new File(outputFile.getParentFile() + "/"
+                + this.hashCode() + "tmpLegalflows.txt"));
+	}
+	
 	/**
 	 * reset flow generator. 
 	 * It will re-generate the full real traffic anyway next time.
@@ -192,8 +199,6 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 		    } else if (packet_index == 1) {
                 packet.flowId = new FlowId(numOfLargeFlows 
                         + packet.flowId.getIntegerValue());
-                fullRealFlowSet.add(packet.flowId);
-                fullRealTrafficVolume += packet.size;
 		    } else if (packet_index == 2) {
 		        
 		        if (!originalUnderUseFlowSet.contains(packet.flowId)) {
@@ -204,8 +209,6 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 		        
 		        packet.flowId = new FlowId(numOfLargeFlows 
                         + numOfFullRealFlows + packet.flowId.getIntegerValue());
-		        underUseRealFlowSet.add(packet.flowId);
-		        underUseTrafficVolume += packet.size;
 		    }
 		    
             gatewayRouter.processPacket(packet);
@@ -217,14 +220,41 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 					break;
 				}
 
+                if (adjustedPacket.flowId.getIntegerValue() > numOfLargeFlows
+                        + numOfFullRealFlows) {
+                    // if the packet belongs to under-use flows
+                    underUseRealFlowSet.add(adjustedPacket.flowId);
+                    underUseTrafficVolume += adjustedPacket.size;
+                } else if (adjustedPacket.flowId
+                        .getIntegerValue() > numOfLargeFlows) {
+                    // if the packet belongs to full-use flows
+                    fullRealFlowSet.add(adjustedPacket.flowId);
+                    fullRealTrafficVolume += adjustedPacket.size;
+                }
+				
 				packetWriter.writePacket(adjustedPacket);
 			}
 
 			if (adjustedPacket != null && adjustedPacket.time > timeInterval) {
 				break;
 			}
-
+			
 		}
+		
+        if (underUseRealFlowSet.size() != numOfUnderUseRealFlows) {
+            System.out.println("Warning: the number of under-use flows ("
+                    + underUseRealFlowSet.size()
+                    + ") is not equal to the number we set ("
+                    + numOfUnderUseRealFlows + "). ");
+        }
+        
+        if (fullRealFlowSet.size() != numOfFullRealFlows) {
+            System.out.println("Warning: the number of full-use flows ("
+                    + fullRealFlowSet.size()
+                    + ") is not equal to the number we set ("
+                    + numOfFullRealFlows + "). ");
+        }
+
 
 		attackPacketReader.close();
 		realPacketReader.close();

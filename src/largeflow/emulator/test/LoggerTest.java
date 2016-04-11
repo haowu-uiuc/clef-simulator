@@ -104,9 +104,9 @@ public class LoggerTest {
         
 		
 		//test logRouterDamage
-		logger.logRouterDamage(router1, 1000, 1000, damage);
-	    logger.logRouterDamage(router2, 2000, 4000, damage);
-	    logger.logRouterDamage(router3, 3000, 5000, damage);
+		logger.logRouterDamage(1, router1, 1000, 1000, damage);
+	    logger.logRouterDamage(1, router2, 2000, 4000, damage);
+	    logger.logRouterDamage(1, router3, 3000, 5000, damage);
 	    
 	    //test logRouterBlackList
         for (int round = 0; round < 3; round ++) {

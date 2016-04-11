@@ -38,6 +38,10 @@ public class Logger implements Closeable, Flushable {
 		return expName;
 	}
 	
+	public File getLogDir() {
+	    return expDir;
+	}
+	
 	public boolean deleteLogs() {
 		return GenericUtils.deleteDir(expDir);
 	}
@@ -177,7 +181,7 @@ public class Logger implements Closeable, Flushable {
 		writer.write(msg);
 	}
 	
-	public void logRouterDamage(Router router, int atkRate, int numOfCounters,
+	public void logRouterDamage(int round, Router router, int atkRate, int numOfCounters,
             Damage damage) throws Exception {
         BufferedWriter writer = getDamageWriter(router.name());
         if (writer == null) {
@@ -186,7 +190,9 @@ public class Logger implements Closeable, Flushable {
                             + this.getClass().getName());
         }
 
-        List<String> valueList = Arrays.asList(String.valueOf(atkRate),
+        List<String> valueList = Arrays.asList(
+                String.valueOf(round),
+                String.valueOf(atkRate),
                 String.valueOf(numOfCounters),
                 String.valueOf(damage.FP),
                 String.valueOf(damage.FN),
@@ -263,6 +269,7 @@ public class Logger implements Closeable, Flushable {
 	        long postQdAttackTraffic, long postQdRealTraffic, 
 	        long blockedRealTraffic, long outboundCapacity) throws Exception {
 	    BufferedWriter writer = getTotalTrafficWriter(router.name());
+        
         if (writer == null) {
             throw new Exception(
                     "Cannot retrieve damage log writer for logger in class "
@@ -324,6 +331,7 @@ public class Logger implements Closeable, Flushable {
                     expDir.toString() + "/" + key + ".txt")));
             writerMap.put(key, writer);
 
+            writer.write("round\t");
             writer.write("attack_rate\t");
             writer.write("number_of_counters\t");
             List<String> columnNameList = Damage.getTitleList();            
@@ -358,5 +366,12 @@ public class Logger implements Closeable, Flushable {
         }
 
         return writer;
+    }
+    
+    public SubLogger getSubLogger(Router router,
+            int round,
+            int atkRate) throws IOException {
+        return new SubLogger(expDir + "/traffic_and_damage/" + router.name()
+                + "/" + round + "/" + atkRate + ".txt");
     }
 }

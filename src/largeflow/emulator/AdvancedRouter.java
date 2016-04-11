@@ -303,9 +303,8 @@ public class AdvancedRouter implements Router {
         while (!inboundQueue.isEmpty()) {
             
             tmpPacket = inboundQueue.poll();
-            if (preQdDetector != null 
-                    && !preQdDetector.processPacket(tmpPacket)){
-                continue;
+            if (preQdDetector != null){
+                preQdDetector.processPacket(tmpPacket);
             }
             
             // choose outbound link
