@@ -139,10 +139,8 @@ public class MaxOveruseDamageEvaluator {
 		// log configs
 		logger.logTestConfig(maxAtkRate,
 				minAtkRate,
-				atkRateInterval,
 				maxNumOfCounters,
 				minNumOfCounters,
-				numOfCounterInterval,
 				numOfRepeatRounds,
 				maxPacketSize,
 				linkCapacity);
@@ -215,8 +213,7 @@ public class MaxOveruseDamageEvaluator {
 											damage += delay	* (double) atkRate;
 										}
 									}
-								} else if (!flowGenerator.isLargeFlow(flowId)
-										&& !flowGenerator.isBurstFlow(flowId)) {
+								} else if (!flowGenerator.isLargeFlow(flowId)) {
 									// only consider the false positive over
 									// non-attack flows
 									// false positive happens here

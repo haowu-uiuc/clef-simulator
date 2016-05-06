@@ -31,10 +31,8 @@ public class EARDetTest {
 	static private Integer packetSize; // Byte, packet size for generated flows
 	static private Integer numOfSmallFlows; // number of small flows to generate
 	static private Integer numOfLargeFlows; // number of large flows to generate
-	static private Integer numOfBurstFlows; // number of burst flows to generate
 	static private Integer largeFlowRate; // rate of large flows
 	static private Integer smallFlowRate; // rate of small flows
-	static private Integer burstFlowSize; // size of each burst
 	static private File inputTestTrafficFile;
 	static private Integer resolution;
 
@@ -45,10 +43,8 @@ public class EARDetTest {
 		packetSize = 100;
 		numOfSmallFlows = 0;
 		numOfLargeFlows = 20;
-		numOfBurstFlows = 0;
 		largeFlowRate = 50000;
 		smallFlowRate = 1500;
-		burstFlowSize = 450000;
 		resolution = (int) (0.0 * largeFlowRate);
 
 		File outputDir = new File("./data/test");
@@ -61,7 +57,7 @@ public class EARDetTest {
 
 		AttackFlowGenerator flowGenerator = new UniformFlowGenerator(linkCapacity,
 				timeInterval, packetSize, numOfSmallFlows, numOfLargeFlows,
-				numOfBurstFlows, largeFlowRate, smallFlowRate, burstFlowSize);
+				largeFlowRate, smallFlowRate);
 
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 		flowGenerator.generateFlows();

@@ -22,13 +22,9 @@ public class MaxPacketLossDamageEvaluatorTest {
 	static private int outboundLinkCapacity; // Byte / sec
 	static private int timeInterval; // seconds, length of packet stream
 	static private int largeFlowPacketSize; // Byte, packet size for generated flows
-	static private int numOfSmallFlows; // number of small flows to generate
 	static private int numOfLargeFlows; // number of large flows to generate
-	static private int numOfBurstFlows; // number of burst flows to generate
 	static private int largeFlowRate; // rate of large flows
 	static private int burstTolerance; // maximum burst size
-	static private int smallFlowRate; // rate of small flows
-	static private int burstFlowSize; // size of each burst
 	
 	static private int perFlowReservation; // per-flow reservation bandwidth
 	static private int fullRealFlowPacketSize; // packet size of synthetic full real flows

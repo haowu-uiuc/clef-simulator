@@ -28,19 +28,15 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer packetSize,
 			Integer numOfSmallFlows,
 			Integer numOfLargeFlows,
-			Integer numOfBurstFlows,
 			Integer largeFlowRate,
-			Integer smallFlowRate,
-			Integer burstFlowSize) {
+			Integer smallFlowRate) {
 		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 	}
 
 	public RandomFlowGenerator(Integer linkCapacity,
@@ -60,20 +56,16 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 			Integer packetSize,
 			Integer numOfSmallFlows,
 			Integer numOfLargeFlows,
-			Integer numOfBurstFlows,
 			Integer largeFlowRate,
 			Integer smallFlowRate,
-			Integer burstFlowSize,
 			Integer priorityLinkCapacity) {
 		super(linkCapacity,
 				timeInterval,
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
 				smallFlowRate,
-				burstFlowSize,
 				priorityLinkCapacity);
 	}
 
@@ -106,16 +98,22 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 		int[] streamBuf = new int[maxNumOfPacketsPerSecond];
 
 		// TODO: generate burst
-
-		// generate large flow
+		if (dutyCycle != null && period != null && dutyCycle < period) {
+		    packetWriter.close();
+            throw new Exception(this.getClass()
+                    + " doesn't support burst flow for now! "
+                    + "Duty cycle cannot below period!");
+		}
+		
+		
 		for (int s = 0; s < timeInterval; s++) {
+		    // generate large flow
 			for (int j = 0; j < streamBuf.length; j++) {
 				streamBuf[j] = 0;
 			}
 			int emptyBuf = streamBuf.length;
 
-			for (int fid = 1 + numOfBurstFlows; fid <= numOfLargeFlows
-					+ numOfBurstFlows; fid++) {
+			for (int fid = 1; fid <= numOfLargeFlows; fid++) {
 				int i = 0;
 				while (i < largeFlowRate / largeFlowPacketSize && emptyBuf > 0) {
 					int pos = (int) (randGenerator.nextDouble() * maxNumOfPacketsPerSecond - 0.00001);
@@ -131,13 +129,12 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 
 			// generate small flows: randomly, but the average rate / sec
 			// is approximately the smallFlowRate
-			int smallFlowIdStart = numOfBurstFlows + numOfLargeFlows + 1;
-			int smallFlowIdEnd = numOfBurstFlows + numOfLargeFlows
+			int smallFlowIdStart = numOfLargeFlows + 1;
+			int smallFlowIdEnd = numOfLargeFlows
 					+ numOfSmallFlows;
 			double ratioOfSmallPacket = (double) numOfSmallFlows
 					* (double) smallFlowRate / ((double) linkCapacity
-					- (double) (largeFlowRate * numOfLargeFlows) 
-					- (double) (numOfBurstFlows * burstFlowSize));
+					- (double) (largeFlowRate * numOfLargeFlows));
 			if (ratioOfSmallPacket > 1.0) {
 				System.out.println("The volume of small flow is larger"
 						+ " than the rest of link capacity!");
@@ -177,8 +174,7 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 	@Override
 	public boolean isLargeFlow(FlowId flowId) {
 		int id = flowId.getIntegerValue();
-		if (id >= 1 + numOfBurstFlows
-				&& id <= numOfBurstFlows + numOfLargeFlows) {
+		if (id >= 1 && id <= numOfLargeFlows) {
 			return true;
 		}
 		return false;
@@ -187,17 +183,8 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 	@Override
 	public boolean isSmallFlow(FlowId flowId) {
 		int id = flowId.getIntegerValue();
-		if (id > numOfBurstFlows + numOfLargeFlows && 
-			id <= numOfBurstFlows + numOfLargeFlows +numOfSmallFlows) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isBurstFlow(FlowId flowId) {
-		int id = flowId.getIntegerValue();
-		if (id >= 0 && id <= numOfBurstFlows) {
+		if (id > numOfLargeFlows && 
+			id <= numOfLargeFlows +numOfSmallFlows) {
 			return true;
 		}
 		return false;
@@ -205,7 +192,7 @@ public class RandomFlowGenerator extends UniAttackRateFlowGenerator {
 	
 	@Override
 	public Integer getNumOfFlows() {
-	    return numOfBurstFlows + numOfLargeFlows + numOfSmallFlows;
+	    return numOfLargeFlows + numOfSmallFlows;
 	}
 	
 	@Override

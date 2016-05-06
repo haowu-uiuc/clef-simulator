@@ -29,13 +29,15 @@ public class MaxPacketLossDamageEvaluator {
     private RealAttackFlowGenerator flowGenerator;
     private int maxAtkRate; // bytes / second
     private int minAtkRate; // bytes / second
-    private int atkRateInterval; // bytes / second
+//    private int atkRateInterval; // bytes / second
     private int maxNumOfCounters;
     private int minNumOfCounters;
-    private int numOfCounterInterval;
+//    private int numOfCounterInterval;
     private int startRound;
     private int numOfRepeatRounds;
     private int maxPacketSize;
+    private List<Integer> atkRateList;
+    private List<Integer> numOfCounterList;
     
     private Long preQdRealTrafficVolume;
     private HashMap<String, Long> postQdAttackTrafficMap;
@@ -50,10 +52,8 @@ public class MaxPacketLossDamageEvaluator {
         routersToEvalList = new ArrayList<>();
         maxAtkRate = -1;
         minAtkRate = -1;
-        atkRateInterval = -1;
         maxNumOfCounters = -1;
         minNumOfCounters = -1;
-        numOfCounterInterval = -1;
         startRound = 0;
         numOfRepeatRounds = 1;
         this.maxPacketSize = NetworkConfig.maxPacketSize;
@@ -84,21 +84,45 @@ public class MaxPacketLossDamageEvaluator {
         preQdAttackResvMap = new HashMap<>();
         preQdRealTrafficVolume = (long)0;
     }
+    
+    public MaxPacketLossDamageEvaluator(List<Integer> atkRateList,
+            List<Integer> numOfCounterList) throws Exception {
+        this.maxPacketSize = NetworkConfig.maxPacketSize;
+        routersToEvalList = new ArrayList<>();
+        this.atkRateList = atkRateList;
+        this.numOfCounterList = numOfCounterList;
+        maxAtkRate = atkRateList.get(atkRateList.size() - 1);
+        minAtkRate = atkRateList.get(0);
+        maxNumOfCounters = numOfCounterList.get(numOfCounterList.size() - 1);
+        minNumOfCounters = numOfCounterList.get(0);
+        
+        postQdAttackTrafficMap = new HashMap<>();
+        postQdRealTrafficMap = new HashMap<>();
+        blockedRealTrafficMap = new HashMap<>();
+        preQdAttackResvMap = new HashMap<>();
+        preQdRealTrafficVolume = (long)0;
+    }
 
     public void configAtkRate(int max,
             int min,
             int interval) {
-        maxAtkRate = max;
-        minAtkRate = min;
-        atkRateInterval = interval;
+        atkRateList = new ArrayList<>();
+        for (int rate = min; rate <= max; rate += interval) {
+            atkRateList.add(rate);
+        }
+        this.maxAtkRate = max;
+        this.minAtkRate = min;
     }
 
     public void configNumOfCounters(int max,
             int min,
             int interval) {
-        maxNumOfCounters = max;
-        minNumOfCounters = min;
-        numOfCounterInterval = interval;
+        numOfCounterList = new ArrayList<>();
+        for (int num = min; num <= max; num += interval) {
+            numOfCounterList.add(num);
+        }
+        this.maxNumOfCounters = max;
+        this.minNumOfCounters = min;
     }
 
     public void setStartRound(int startRound) throws Exception {
@@ -178,10 +202,8 @@ public class MaxPacketLossDamageEvaluator {
         // log configs
         logger.logTestConfig(maxAtkRate,
                 minAtkRate,
-                atkRateInterval,
                 maxNumOfCounters,
                 minNumOfCounters,
-                numOfCounterInterval,
                 numOfRepeatRounds,
                 maxPacketSize,
                 flowGenerator.getLinkCapacity());
@@ -196,9 +218,9 @@ public class MaxPacketLossDamageEvaluator {
             flowGenerator.reset();  // re-generate real traffic in each round.
 
             int i = 0;
-            for (int atkRate = minAtkRate; 
-                    atkRate <= maxAtkRate; 
-                    atkRate += atkRateInterval) {
+            for (int atkRateIndex = 0; atkRateIndex < atkRateList.size(); atkRateIndex++) {
+                int atkRate = atkRateList.get(atkRateIndex);
+                
                 flowGenerator.setAttackRate(atkRate);
                 flowGenerator.generateFlows();
                 preQdRealTrafficVolume = flowGenerator.getUnderUseRealTrafficVolume()
@@ -215,10 +237,9 @@ public class MaxPacketLossDamageEvaluator {
                     subLoggerMap.put(router.name(), logger.getSubLogger(router, round, atkRate));
                 }
                 
-                for (int numOfCounters = minNumOfCounters; 
-                        numOfCounters <= maxNumOfCounters; 
-                        numOfCounters += numOfCounterInterval) {
+                for (int counterIndex = 0; counterIndex < numOfCounterList.size(); counterIndex++) {
                     i++;
+                    int numOfCounters = numOfCounterList.get(counterIndex);
                     System.out.println(round + "." + i + "\tRate: " + atkRate
                             + "\tCounter: " + numOfCounters);
 
@@ -337,8 +358,7 @@ public class MaxPacketLossDamageEvaluator {
         Packet nextPacket;
         for (int j = 0; j < router.getNumOfOutboundLinks(); j++) {
             while ((nextPacket = router.getNextOutboundPacket(j)) != null) {
-                if (flowGenerator.isLargeFlow(nextPacket.flowId) ||
-                        flowGenerator.isBurstFlow(nextPacket.flowId)) {
+                if (flowGenerator.isLargeFlow(nextPacket.flowId)) {
                     long newValue = postQdAttackTrafficMap.get(router.name()) + nextPacket.size;
                     postQdAttackTrafficMap.put(router.name(), newValue);
                 } else {

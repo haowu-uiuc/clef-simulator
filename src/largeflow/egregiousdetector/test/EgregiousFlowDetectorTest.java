@@ -31,11 +31,8 @@ public class EgregiousFlowDetectorTest {
 												// generate
 	static private Integer numOfLargeFlows = 20; // number of large flows to
 													// generate
-	static private Integer numOfBurstFlows = 0; // number of burst flows to
-												// generate
 	static private Integer largeFlowRate = 260000; // rate of large flows
 	static private Integer smallFlowRate = 100000; // rate of small flows
-	static private Integer burstFlowSize = 0; // size of each burst
 	static private File inputTestTrafficFile;
 	private EgregiousFlowDetector detector;
 
@@ -54,10 +51,8 @@ public class EgregiousFlowDetectorTest {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 		flowGenerator.generateFlows();

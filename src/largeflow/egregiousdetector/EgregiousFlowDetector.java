@@ -245,6 +245,13 @@ public class EgregiousFlowDetector extends Detector {
 			}
 		}
 		
+		// if number of counters is not enough
+		if (optk <= 0) {
+		    optf = 2;
+		    optd = numOfCounters / optf;
+		    optk = 1;
+		}
+		
 		fanout = optf;
 		maxDepth = optd;
 		numOfBranches = optk;

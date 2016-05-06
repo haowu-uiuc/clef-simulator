@@ -93,11 +93,11 @@ public class Logger implements Closeable, Flushable {
 		configWriter.newLine();
 	}
 	
-	public void logTestConfig(int maxAtkRate, int minAtkRate, int atkRateInterval, 
-			int maxNumOfCounters, int minNumOfCounters, int numOfCounterInterval,
+	public void logTestConfig(int maxAtkRate, int minAtkRate, 
+			int maxNumOfCounters, int minNumOfCounters,
 			int numOfRepeatRounds, int maxPacketSize, int linkCapacity) throws IOException{
-		logTestConfigHelper(maxAtkRate, minAtkRate, atkRateInterval, 
-				maxNumOfCounters, minNumOfCounters, numOfCounterInterval, 
+		logTestConfigHelper(maxAtkRate, minAtkRate, 
+				maxNumOfCounters, minNumOfCounters, 
 				numOfRepeatRounds, maxPacketSize, linkCapacity);
 		configWriter.newLine();
 	}
@@ -106,8 +106,8 @@ public class Logger implements Closeable, Flushable {
 			int maxNumOfCounters, int minNumOfCounters, int numOfCounterInterval,
 			int numOfRepeatRounds, int maxPacketSize, int linkCapacity, 
 			int priorityLinkCapacity, int bestEffortLinkCapacity, double bestEffortRatio) throws IOException{
-		logTestConfigHelper(maxAtkRate, minAtkRate, atkRateInterval, 
-				maxNumOfCounters, minNumOfCounters, numOfCounterInterval, 
+		logTestConfigHelper(maxAtkRate, minAtkRate, 
+				maxNumOfCounters, minNumOfCounters, 
 				numOfRepeatRounds, maxPacketSize, linkCapacity);
 		configWriter.write("Priority Link Capacity: " + priorityLinkCapacity + " Byte / sec");
 		configWriter.newLine();
@@ -118,19 +118,15 @@ public class Logger implements Closeable, Flushable {
 		configWriter.newLine();
 	}
 
-	private void logTestConfigHelper(int maxAtkRate, int minAtkRate, int atkRateInterval, 
-			int maxNumOfCounters, int minNumOfCounters, int numOfCounterInterval,
+	private void logTestConfigHelper(int maxAtkRate, int minAtkRate, 
+			int maxNumOfCounters, int minNumOfCounters,
 			int numOfRepeatRounds, int maxPacketSize, int linkCapacity) throws IOException{
 		configWriter.write("=====Test Config=====\n");	
 		configWriter.write("Number of Repeated Rounds: " + numOfRepeatRounds);
 		configWriter.newLine();
 		configWriter.write("Attack Rate Range: [" + minAtkRate + ", " + maxAtkRate + "] Byte / sec");
 		configWriter.newLine();
-		configWriter.write("Attack Rate Interval: " + atkRateInterval + " Byte / sec");
-		configWriter.newLine();
 		configWriter.write("Counter Number Range: [" + minNumOfCounters + ", " + maxNumOfCounters + "]");
-		configWriter.newLine();
-		configWriter.write("Counter Number Interval: " + numOfCounterInterval);
 		configWriter.newLine();
 		configWriter.write("Maximum Packet Size: " + maxPacketSize + " Byte");
 		configWriter.newLine();

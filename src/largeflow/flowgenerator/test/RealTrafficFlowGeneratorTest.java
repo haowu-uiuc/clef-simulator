@@ -82,7 +82,7 @@ public class RealTrafficFlowGeneratorTest {
 	public void analyzeRealTraffic() throws Exception {
 	    linkCapacity = 25000000;
         timeInterval = 10;
-        compactTimes = 2.0;
+        compactTimes = 1.0;
         
         RealTrafficFlowGenerator flowGenerator = new RealTrafficFlowGenerator(linkCapacity,
                 timeInterval,
@@ -140,7 +140,7 @@ public class RealTrafficFlowGeneratorTest {
     public void testLargeRealFlowFilter() throws Exception {
         linkCapacity = 25000000;
         timeInterval = 10;
-        compactTimes = 2.0;
+        compactTimes = 1.0;
         
         RealTrafficFlowGenerator flowGenerator_original = new RealTrafficFlowGenerator(linkCapacity,
                 timeInterval,
@@ -151,7 +151,7 @@ public class RealTrafficFlowGeneratorTest {
         
         System.out.println("Legal Traffic:");
         
-        for (int largeFlowRate = 250000; largeFlowRate <= 1000000; largeFlowRate += 250000) {
+        for (int largeFlowRate = 50000; largeFlowRate <= 500000; largeFlowRate += 50000) {
             LeakyBucketDetector baseDetector = new LeakyBucketDetector(
                     "test_leakybucket",
                     1518 * 4,
@@ -204,7 +204,7 @@ public class RealTrafficFlowGeneratorTest {
     public void testLargeRealFlowShaper() throws Exception {
         linkCapacity = 25000000;
         timeInterval = 10;
-        compactTimes = 2.0;
+        compactTimes = 1.0;
         
         RealTrafficFlowGenerator flowGenerator_original = new RealTrafficFlowGenerator(linkCapacity,
                 timeInterval,
@@ -217,7 +217,7 @@ public class RealTrafficFlowGeneratorTest {
         
         System.out.println("Legal Traffic:");
         
-        for (int largeFlowRate = 250000; largeFlowRate <= 1000000; largeFlowRate += 250000) {
+        for (int largeFlowRate = 50000; largeFlowRate <= 200000; largeFlowRate += 50000) {
             LeakyBucketDetector baseDetector = new LeakyBucketDetector(
                     "test_leakybucket",
                     1518 * 4,

@@ -173,8 +173,7 @@ public class PacketLossDamageCalculator {
         
         int FN = 0;
         for (Map.Entry<FlowId, Double> entry : baseBlackList.entrySet()) {
-            if (!flowGenerator.isLargeFlow(entry.getKey()) 
-                    && !flowGenerator.isBurstFlow(entry.getKey())) {
+            if (!flowGenerator.isLargeFlow(entry.getKey())) {
                 // we only consider the large flow or burst flows here
                 // not considering real flow which violates the spec
                 continue;
@@ -193,8 +192,7 @@ public class PacketLossDamageCalculator {
         
         int TP = 0;
         for (Map.Entry<FlowId, Double> entry : baseBlackList.entrySet()) {
-            if (!flowGenerator.isLargeFlow(entry.getKey()) 
-                    && !flowGenerator.isBurstFlow(entry.getKey())) {
+            if (!flowGenerator.isLargeFlow(entry.getKey())) {
                 // we only consider the large flow or burst flows here
                 // not considering real flow which violates the spec
 //                System.out.println("TP in real traffic");
@@ -213,8 +211,7 @@ public class PacketLossDamageCalculator {
         
         int FP = 0;
         for (Map.Entry<FlowId, Double> entry : routerBlackList.entrySet()) {
-            if (flowGenerator.isLargeFlow(entry.getKey()) 
-                    || flowGenerator.isBurstFlow(entry.getKey())) {
+            if (flowGenerator.isLargeFlow(entry.getKey())) {
                 // do not consider the attack flows as FP.
                 continue;
             }

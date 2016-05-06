@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import largeflow.datatype.Packet;
-import largeflow.eardet.EARDet;
 import largeflow.eardet.VirlinkEARDet;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.PacketReader;
@@ -28,10 +27,8 @@ public class VirlinkEARDetTest {
 	static private Integer packetSize; // Byte, packet size for generated flows
 	static private Integer numOfSmallFlows; // number of small flows to generate
 	static private Integer numOfLargeFlows; // number of large flows to generate
-	static private Integer numOfBurstFlows; // number of burst flows to generate
 	static private Integer largeFlowRate; // rate of large flows
 	static private Integer smallFlowRate; // rate of small flows
-	static private Integer burstFlowSize; // size of each burst
 	static private File inputTestTrafficFile;
 	static private Integer resolution;
 
@@ -62,10 +59,8 @@ public class VirlinkEARDetTest {
 		packetSize = 500;
 		numOfSmallFlows = 0;
 		numOfLargeFlows = 30;
-		numOfBurstFlows = 0;
 		largeFlowRate = 300000;
 		smallFlowRate = 1500;
-		burstFlowSize = 450000;
 		resolution = (int) (0.0 * largeFlowRate);
 
 		File outputDir = new File("./data/test");
@@ -81,10 +76,8 @@ public class VirlinkEARDetTest {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 		flowGenerator.generateFlows();
@@ -165,10 +158,8 @@ public class VirlinkEARDetTest {
 		packetSize = 500;
 		numOfSmallFlows = 0;
 		numOfLargeFlows = 10;
-		numOfBurstFlows = 0;
 		largeFlowRate = 40000;
 		smallFlowRate = 1500;
-		burstFlowSize = 450000;
 		resolution = (int) (0.0 * largeFlowRate);
 
 		File outputDir = new File("./data/test");
@@ -184,10 +175,8 @@ public class VirlinkEARDetTest {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 		flowGenerator.generateFlows();

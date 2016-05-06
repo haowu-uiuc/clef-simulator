@@ -56,9 +56,9 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
                 largeFlowPacketSize,
                 numOfLargeFlows,
                 largeFlowRate,
-                perFlowReservation * (numOfFullRealFlows + numOfFullRealFlows + numOfUnderUseRealFlows));
+                perFlowReservation * (numOfFullRealFlows + numOfLargeFlows + numOfUnderUseRealFlows));
 		Integer totalPriorityCapacity = perFlowReservation 
-                * (numOfFullRealFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+                * (numOfFullRealFlows + numOfLargeFlows + numOfUnderUseRealFlows);
 		
 		this.fullRealFlowPacketSize = fullRealFlowPacketSize;
 		this.perFlowReservation = perFlowReservation;
@@ -301,13 +301,7 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 
 	@Override
 	public boolean isSmallFlow(FlowId flowId) {
-		return ! ( attackFlowGenerator.isLargeFlow(flowId)
-		        || attackFlowGenerator.isBurstFlow(flowId) );
-	}
-
-	@Override
-	public boolean isBurstFlow(FlowId flowId) {
-		return attackFlowGenerator.isBurstFlow(flowId);
+		return ! attackFlowGenerator.isLargeFlow(flowId);
 	}
 
 	@Override
@@ -377,6 +371,15 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
     
     public Set<FlowId> getUnderUseRealFlowIdSet() {
         return underUseRealFlowSet;
+    }
+    
+    /**
+     * set duty cycle and period for generation burst flows.
+     * @param dutyCycle
+     * @param period
+     */
+    public void setAttackDutyCycleAndPeriod(double dutyCycle, double period) {
+        attackFlowGenerator.setDutyCycleAndPeriod(dutyCycle, period);
     }
     
 }

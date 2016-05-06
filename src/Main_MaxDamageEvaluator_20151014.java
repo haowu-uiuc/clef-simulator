@@ -8,7 +8,6 @@ import largeflow.egregiousdetector.EgregiousFlowDetector;
 import largeflow.emulator.Logger;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.MaxOveruseDamageEvaluator;
-import largeflow.flowgenerator.RandomFlowGenerator;
 import largeflow.flowgenerator.UniAttackRateFlowGenerator;
 import largeflow.flowgenerator.UniformFlowGenerator;
 
@@ -19,10 +18,8 @@ public class Main_MaxDamageEvaluator_20151014 {
 	static private Integer packetSize; // Byte, packet size for generated flows
 	static private Integer numOfSmallFlows; // number of small flows to generate
 	static private Integer numOfLargeFlows; // number of large flows to generate
-	static private Integer numOfBurstFlows; // number of burst flows to generate
 	static private Integer largeFlowRate; // rate of large flows
 	static private Integer smallFlowRate; // rate of small flows
-	static private Integer burstFlowSize; // size of each burst
 	static private File inputTestTrafficFile;
 
 	// for Leaky Bucket
@@ -62,10 +59,8 @@ public class Main_MaxDamageEvaluator_20151014 {
 		packetSize = 100;
 		numOfSmallFlows = 950;
 		numOfLargeFlows = 50;
-		numOfBurstFlows = 0;
 		largeFlowRate = linkCapacity / 100; 	// will be re-set in the evaluation
 		smallFlowRate = linkCapacity / 5000;	
-		burstFlowSize = 0;
 
 		File outputDir = new File("./data");
 		inputTestTrafficFile = new File(outputDir.toString()
@@ -80,10 +75,8 @@ public class Main_MaxDamageEvaluator_20151014 {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 		
 		// for leaky bucket

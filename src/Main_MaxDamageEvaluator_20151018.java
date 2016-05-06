@@ -27,7 +27,6 @@ public class Main_MaxDamageEvaluator_20151018 {
 	static private Integer numOfLargeFlows; // number of large flows to generate
 	static private Integer numOfBurstFlows; // number of burst flows to generate
 	static private Integer largeFlowRate; // rate of large flows
-	static private Integer burstFlowSize; // size of each burst
 	static private File realTrafficFile;
 	static private Double compactTimes;
 	static private File inputTestTrafficFile;
@@ -73,7 +72,6 @@ public class Main_MaxDamageEvaluator_20151018 {
 		largeFlowRate = linkCapacity
 				/ (numOfRealFlows + numOfLargeFlows + numOfBurstFlows) * 10;
 		// largeFlowRate will be re-set in the evaluation
-		burstFlowSize = 0;
 
 		realTrafficFile = new File("./data/real_traffic/realtrace_long.txt");
 		compactTimes = 10.0;

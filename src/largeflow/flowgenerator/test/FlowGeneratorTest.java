@@ -15,11 +15,12 @@ public class FlowGeneratorTest {
 	private Integer packetSize; // Byte, packet size for generated flows
 	private Integer numOfSmallFlows; // number of small flows to generate
 	private Integer numOfLargeFlows; // number of large flows to generate
-	private Integer numOfBurstFlows; // number of burst flows to generate
 	private Integer largeFlowRate; // rate of large flows
 	private Integer smallFlowRate; // rate of small flows
-	private Integer burstFlowSize; // size of each burst
 	private File outputDir;
+	
+	private Double dutyCycle = 0.2;
+	private Double period = 1.0;
 
 	@Before
 	public void initTest() {
@@ -27,11 +28,9 @@ public class FlowGeneratorTest {
 		timeInterval = 2;
 		packetSize = 100;
 		numOfSmallFlows = 0;
-		numOfLargeFlows = 100;
-		numOfBurstFlows = 0;
+		numOfLargeFlows = 10;
 		largeFlowRate = 150000;
 		smallFlowRate = 1500;
-		burstFlowSize = 450000;
 		outputDir = new File("./data/test");
 
 		if (!outputDir.exists()) {
@@ -46,15 +45,29 @@ public class FlowGeneratorTest {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(new File(outputDir.toString()
 				+ "/UniformFlowGeneratorFlows.txt"));
 		flowGenerator.generateFlows();
 	}
+	
+	@Test
+    public void testUniformFlowGeneratorWithBurst() throws Exception {
+        UniformFlowGenerator flowGenerator = new UniformFlowGenerator(linkCapacity,
+                timeInterval,
+                packetSize,
+                numOfSmallFlows,
+                numOfLargeFlows,
+                largeFlowRate,
+                smallFlowRate);
+
+        flowGenerator.setOutputFile(new File(outputDir.toString()
+                + "/UniformFlowGeneratorFlows.txt"));
+        flowGenerator.setDutyCycleAndPeriod(dutyCycle, period);
+        flowGenerator.generateFlows();
+    }
 
 	@Test
 	public void testUniformFlowGeneratorWithSmallFlows() throws Exception {
@@ -63,10 +76,8 @@ public class FlowGeneratorTest {
 				packetSize,
 				1000,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(new File(outputDir.toString()
 				+ "/UniformFlowGeneratorFlows_WithSmallFlows.txt"));
@@ -80,10 +91,8 @@ public class FlowGeneratorTest {
 				packetSize,
 				0,
 				0,
-				0,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(new File(outputDir.toString()
 				+ "/UniformFlowGeneratorFlows_WithNoFlows.txt"));
@@ -97,10 +106,8 @@ public class FlowGeneratorTest {
 				packetSize,
 				numOfSmallFlows,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(new File(outputDir.toString()
 				+ "/RandomFlowGeneratorFlows.txt"));
@@ -114,10 +121,8 @@ public class FlowGeneratorTest {
 				packetSize,
 				1000,
 				numOfLargeFlows,
-				numOfBurstFlows,
 				largeFlowRate,
-				smallFlowRate,
-				burstFlowSize);
+				smallFlowRate);
 
 		flowGenerator.setOutputFile(new File(outputDir.toString()
 				+ "/RandomFlowGeneratorFlows_WithSmallFlows.txt"));

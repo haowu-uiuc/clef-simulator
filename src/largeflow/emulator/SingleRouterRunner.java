@@ -3,9 +3,7 @@ package largeflow.emulator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 
 public class SingleRouterRunner {

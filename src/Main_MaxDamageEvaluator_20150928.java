@@ -17,10 +17,8 @@ public class Main_MaxDamageEvaluator_20150928 {
 	static private Integer packetSize; // Byte, packet size for generated flows
 	static private Integer numOfSmallFlows; // number of small flows to generate
 	static private Integer numOfLargeFlows; // number of large flows to generate
-	static private Integer numOfBurstFlows; // number of burst flows to generate
 	static private Integer largeFlowRate; // rate of large flows
 	static private Integer smallFlowRate; // rate of small flows
-	static private Integer burstFlowSize; // size of each burst
 	static private File inputTestTrafficFile;
 	static private Integer bias;
 	static private Integer gamma_h;
@@ -42,10 +40,8 @@ public class Main_MaxDamageEvaluator_20150928 {
 		packetSize = 100;
 		numOfSmallFlows = 0;
 		numOfLargeFlows = 10;
-		numOfBurstFlows = 0;
 		largeFlowRate = linkCapacity / 100;
 		smallFlowRate = 1500;
-		burstFlowSize = 450000;
 
 		// for EARDet
 		bias = (int) (0.00 * largeFlowRate);
@@ -65,8 +61,7 @@ public class Main_MaxDamageEvaluator_20150928 {
 
 		UniAttackRateFlowGenerator flowGenerator = new UniformFlowGenerator(
 				linkCapacity, timeInterval, packetSize, numOfSmallFlows,
-				numOfLargeFlows, numOfBurstFlows, largeFlowRate, smallFlowRate,
-				burstFlowSize);
+				numOfLargeFlows, largeFlowRate, smallFlowRate);
 		flowGenerator.setOutputFile(inputTestTrafficFile);
 
 		EARDet eardet = new EARDet("eardet", alpha, beta_l, gamma_h, gamma_l,
