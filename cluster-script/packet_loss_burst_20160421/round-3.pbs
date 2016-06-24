@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#
+#PBS -l walltime=04:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -N large-flow-job-packet_loss_burst_20160421
+#PBS -q secondary
+#PBS -j oe
+###PBS -m be
+###PBS -o large-flow-job.out
+###PBS -e large-flow-job.err
+###PBS -m be
+#
+#####################################
+
+# Change to the directory from which the batch job was submitted
+cd /home/haowu11/large-flow
+
+# Assigned the numeric portion of the pbs jobid to a varaible
+export JOBID=`echo $PBS_JOBID | cut -d"." -f1`
+
+# Load JAVA 1.8 module
+module load java/1.8
+
+# Run JAVA code
+java -Xms1024m -Xmx2048m -d64 -jar Main_MaxPacketLossEvaluation_burst_20160421.jar packet_loss_burst_20160421 3 1

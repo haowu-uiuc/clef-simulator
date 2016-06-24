@@ -65,6 +65,7 @@ public class MaxPacketLossDamageEvaluator {
         preQdRealTrafficVolume = (long)0;
     }
 
+    @Deprecated
     public MaxPacketLossDamageEvaluator(int maxAtkRate,
             int minAtkRate,
             int atkRateInterval,

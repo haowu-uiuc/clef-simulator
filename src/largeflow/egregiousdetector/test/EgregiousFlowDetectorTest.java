@@ -77,7 +77,7 @@ public class EgregiousFlowDetectorTest {
 		int gamma = 250000;
 		int burst = 6072;
 		double period = 0.1; // minPeriod = 6072 / 250000 = 0.025
-		int numOfCounters = 100;
+		int numOfCounters = 200;
 
 		detector = new EgregiousFlowDetector(detectorName,
 				gamma,
@@ -86,7 +86,8 @@ public class EgregiousFlowDetectorTest {
 				linkCapacity,
 				numOfCounters);
 	    detector.setEstimatedNumOfFlows(linkCapacity / gamma);
-
+	    detector.enableDebug();
+	    
 		LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector("test_leaky_bucket_detector",
 				burst,
 				gamma,

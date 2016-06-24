@@ -225,25 +225,31 @@ public class EgregiousFlowDetector extends Detector {
 		int optd = -1;
 		int optk = -1;
 		int N = estimateNumOfFlows();
-		double maxOptTarget = 0.0;
-		for (int f = 2; f <= numOfCounters; f++) {
-			int d = calculateMaxDepth(N, f);
-			int k = calculateNumOfBranches(numOfCounters, f, d);
-
-			if (k <= 0 || k > f) {
-				continue;
-			}
-
-			double optTarget = (double) k / (double) d;
-//			 System.out.println("optTarget = " + optTarget + ", f = " + f +
-//			 ", d = " + d + ", k = " + k);
-			if (optTarget > maxOptTarget) {
-				optf = f;
-				optd = d;
-				optk = k;
-				maxOptTarget = optTarget;
-			}
-		}
+//		double maxOptTarget = 0.0;
+//		for (int f = 2; f <= numOfCounters; f++) {
+//			int d = calculateMaxDepth(N, f);
+//			int k = calculateNumOfBranches(numOfCounters, f, d);
+//
+//			if (k <= 0 || k > f) {
+//				continue;
+//			}
+//
+//			double optTarget = (double) k / (double) d;
+////			 System.out.println("optTarget = " + optTarget + ", f = " + f +
+////			 ", d = " + d + ", k = " + k);
+//			if (optTarget > maxOptTarget) {
+//				optf = f;
+//				optd = d;
+//				optk = k;
+//				maxOptTarget = optTarget;
+//			}
+//		}
+		
+		// only use optf = 2 //
+		optf = 2;
+		optd = calculateMaxDepth(N, optf);
+		optk = calculateNumOfBranches(numOfCounters, optf, optd);
+		///////////////////////
 		
 		// if number of counters is not enough
 		if (optk <= 0) {

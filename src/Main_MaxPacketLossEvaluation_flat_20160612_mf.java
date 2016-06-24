@@ -16,7 +16,7 @@ import largeflow.flowgenerator.RealTrafficFlowGenerator;
 import largeflow.multistagefilter.AMFDetector;
 import largeflow.multistagefilter.FMFDetector;
 
-public class Main_MaxPacketLossEvaluation_burst_20160421 {
+public class Main_MaxPacketLossEvaluation_flat_20160612_mf {
 
     public static void main(String[] args) throws Exception {
 
@@ -25,6 +25,10 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
         int startRound = 0;
         int numOfRepeatRounds = 1;
         File rateFile = null;
+        File counterFile = null;
+        
+        boolean BURST_ATTACK = false;   // if false then we do flat attack
+        double dutyCycle = 0.1;  // from 0 to 1.0
         
         // read args from command-line
         if (args.length == 1) {
@@ -35,9 +39,14 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
             numOfRepeatRounds = Integer.valueOf(args[2]);
         } 
         
-        if (args.length == 5 && args[3].equals("--rate")) {
+        if (args.length >= 5 && args[3].equals("--rate")) {
             // each line of the file shows the ratio of the attack rate to the large flow spec
             rateFile = new File(args[4]);
+        }
+        
+        if (args.length >= 7 && args[5].equals("--counter")) {
+            // each line of the file shows number of counters to use
+            counterFile = new File(args[6]);
         }
         
         // Network config
@@ -91,7 +100,7 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
         int tmpNumOfCounters = 100;
         // smarter burst attack flow based on EFD
         double burst_length = period;
-        double burst_period = period * 10;
+        double burst_period = period / dutyCycle;
         
         // for FMF
         double T_fmf = 0.1;
@@ -163,7 +172,7 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
         
         // setup flow generator
         RealTrafficFlowGenerator realTrafficFlowGenerator 
-        = new RealTrafficFlowGenerator(outboundLinkCapacity, 
+            = new RealTrafficFlowGenerator(outboundLinkCapacity, 
                 timeInterval, 
                 realTrafficFile);
         // use outbound link capacity here to guarantee the real traffic 
@@ -171,7 +180,7 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
         realTrafficFlowGenerator.setOutputFile(realTrafficOutputFile);
         realTrafficFlowGenerator.enableLargeRealFlowFilter(baseDetector);
         realTrafficFlowGenerator.generateFlows();
-                
+        
         RealAttackFlowGenerator flowGenerator = new RealAttackFlowGenerator(
                 inboundLinkCapacity,
                 timeInterval,
@@ -183,21 +192,14 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
                 numOfFullRealFlows,
                 numOfUnderUseRealFlows,
                 realTrafficFlowGenerator);
-        flowGenerator.setAttackDutyCycleAndPeriod(burst_length, burst_period); // then generate burst flows
+        if (BURST_ATTACK) {
+            // then generate burst flows
+            flowGenerator.setAttackDutyCycleAndPeriod(burst_length, burst_period); 
+        }
         flowGenerator.setOutputFile(expInputTrafficFile);
         
         
         // setup evaluator
-        int maxAtkRate = largeFlowRate * 1000;
-        int minAtkRate = largeFlowRate;
-        int atkRateInterval = largeFlowRate * 20;
-//        int minNumOfCounters = eardet.getNumOfCounters() * 2 / 5;
-//        int numOfCounterInterval = eardet.getNumOfCounters() / 5;
-//        int maxNumOfCounters = eardet.getNumOfCounters() / 5 * 11;
-        int minNumOfCounters = 20;
-        int numOfCounterInterval = 20;
-        int maxNumOfCounters = 200;
-        
         List<Integer> atkRateList = new ArrayList<>();
         for (int rate = largeFlowRate; rate < largeFlowRate * 10; rate += largeFlowRate) {
             atkRateList.add(rate);
@@ -229,26 +231,29 @@ public class Main_MaxPacketLossEvaluation_burst_20160421 {
             br.close();
         }
         
+        if (counterFile != null) {
+            BufferedReader br = new BufferedReader(new FileReader(counterFile));
+            numOfCounterList = new ArrayList<>();
+            String line;
+            
+            System.out.println("number of counter to test: ");
+            while ((line = br.readLine()) != null) {
+                int counterNum = Integer.valueOf(line);
+                numOfCounterList.add(counterNum);
+                System.out.println(counterNum);
+            }
+            br.close();
+        }
+        
         MaxPacketLossDamageEvaluator evaluator = 
                 new MaxPacketLossDamageEvaluator(atkRateList, numOfCounterList);
         
-        if (args.length == 6) {
-            minAtkRate = Integer.valueOf(args[3]);
-            maxAtkRate = Integer.valueOf(args[4]);
-            atkRateInterval = Integer.valueOf(args[5]);
-            evaluator = new MaxPacketLossDamageEvaluator(maxAtkRate, minAtkRate, 
-                            atkRateInterval, maxNumOfCounters, 
-                            minNumOfCounters, numOfCounterInterval);
-        }
-        
-        
-
         evaluator.setLogger(new Logger(expName));
         evaluator.setFlowGenerator(flowGenerator);
         evaluator.setBaseDetector(baseDetector);
-        evaluator.addRouter(router1);
-        evaluator.addRouter(router2);
-//        evaluator.addRouter(router3);
+//        evaluator.addRouter(router1);
+//        evaluator.addRouter(router2);
+        evaluator.addRouter(router3);
         evaluator.addRouter(router4);
         evaluator.setStartRound(startRound);
         evaluator.setNumOfRepeatRounds(numOfRepeatRounds);
