@@ -2,6 +2,7 @@ package largeflow.utils;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -10,8 +11,9 @@ import largeflow.datatype.FlowId;
 public class GenericUtils {
 
     /**
-     * delete the file or
-     * delete this directory dir and all its children files and directories.
+     * delete the file or delete this directory dir and all its children files
+     * and directories.
+     * 
      * @param dir
      * @return
      */
@@ -21,21 +23,23 @@ public class GenericUtils {
                 deleteDir(subDir);
             }
         }
-        
+
         return dir.delete();
     }
-    
+
     /**
      * randomly pick a subset of a flowId set
+     * 
      * @param subsetSize
      * @param totalSet
      * @return
      */
-    static public Set<FlowId> getRandomSubFlowSet(int subsetSize, Set<FlowId> totalSet) {
+    static public Set<FlowId> getRandomSubFlowSet(int subsetSize,
+            Set<FlowId> totalSet) {
         HashSet<FlowId> subFlowSet = new HashSet<>();
-        
+
         HashSet<Integer> indexSet = new HashSet<>(subsetSize);
-        Random rand = new Random((int)(Math.random() * 1000000.));
+        Random rand = new Random((int) (Math.random() * 1000000.));
         for (int i = 0; i < subsetSize; i++) {
             int newIndex = rand.nextInt(totalSet.size());
             while (indexSet.contains(newIndex)) {
@@ -43,18 +47,34 @@ public class GenericUtils {
             }
             indexSet.add(newIndex);
         }
-        
+
         int index = 0;
         for (FlowId flowId : totalSet) {
-            
+
             if (indexSet.contains(index)) {
                 subFlowSet.add(flowId);
             }
-            
+
             index++;
         }
-        
+
         return subFlowSet;
     }
-    
+
+    /**
+     * only add the entries with the key not in baseMap into the baseMap from
+     * newMap.
+     * 
+     * @param baseMap
+     * @param newMap
+     */
+    static public void addAllNewEntriesIntoMap(Map<FlowId, Double> baseMap,
+            Map<FlowId, Double> newMap) {
+        for (Map.Entry<FlowId, Double> entry : newMap.entrySet()) {
+            if (!baseMap.containsKey(entry.getKey())) {
+                baseMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
 }
