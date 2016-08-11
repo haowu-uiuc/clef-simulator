@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -67,9 +69,8 @@ public class MultistageFilterTest {
 
         flowGenerator.setOutputFile(inputTestTrafficFile);
         flowGenerator.generateFlows();
-        
-        flowGenerator = new UniformFlowGenerator(
-                linkCapacity,
+
+        flowGenerator = new UniformFlowGenerator(linkCapacity,
                 timeInterval,
                 packetSize,
                 numOfSmallFlows,
@@ -78,7 +79,6 @@ public class MultistageFilterTest {
                 smallFlowRate);
         flowGenerator.setOutputFile(inputWithSmallFlowsTestTrafficFile);
         flowGenerator.generateFlows();
-
 
         logger = new Logger("test_exp");
 
@@ -256,10 +256,8 @@ public class MultistageFilterTest {
         Integer threshold = (int) ((double) (largeFlowRate - resolution) * T);
         Integer leakyBucketThreshold = 1518 * 4;
         Integer drainRate = largeFlowRate - resolution;
-        FlowMemory fm = new FlowMemory(20,
-                leakyBucketThreshold,
-                drainRate,
-                linkCapacity);
+        FlowMemoryFactory fm_factory = new FlowMemoryFactory(
+                leakyBucketThreshold, drainRate, linkCapacity);
 
         FMFDetector fmfDetector = new FMFDetector("test_FMFDetector",
                 numOfStages,
@@ -267,13 +265,16 @@ public class MultistageFilterTest {
                 linkCapacity,
                 T,
                 threshold);
-        fmfDetector.setFlowMemory(fm);
+        fmfDetector.setFlowMemoryFactory(fm_factory);
 
         testMultistageFilter(fmfDetector, inputTestTrafficFile, 0, 0);
 
         fmfDetector.reset();
-        testMultistageFilter(fmfDetector, inputWithSmallFlowsTestTrafficFile, null, 0);
-        
+        testMultistageFilter(fmfDetector,
+                inputWithSmallFlowsTestTrafficFile,
+                null,
+                0);
+
         logger.logDetectorConfig(fmfDetector, false);
     }
 
@@ -284,7 +285,9 @@ public class MultistageFilterTest {
         Integer sizeOfStage = 25;
         Integer threshold = 1518 * 4;
         Integer drainRate = largeFlowRate - resolution;
-        FlowMemory fm = new FlowMemory(20, threshold, drainRate, linkCapacity);
+        FlowMemoryFactory fm_factory = new FlowMemoryFactory(threshold,
+                drainRate,
+                linkCapacity);
 
         AMFDetector amfDetector = new AMFDetector("test_AMFDetector",
                 numOfStages,
@@ -292,7 +295,8 @@ public class MultistageFilterTest {
                 linkCapacity,
                 drainRate,
                 threshold);
-        amfDetector.setFlowMemory(fm);
+        amfDetector.setFlowMemoryFactory(fm_factory);
+        amfDetector.setRatioOfFlowMemory(0.5);
 
         LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
                 "test_LeakyBucketDetector", threshold, drainRate, linkCapacity);
@@ -301,8 +305,11 @@ public class MultistageFilterTest {
         testDetectorWithLeakyBucket(amfDetector, leakyBucketDetector);
 
         amfDetector.reset();
-        testMultistageFilter(amfDetector, inputWithSmallFlowsTestTrafficFile, null, 0);
-        
+        testMultistageFilter(amfDetector,
+                inputWithSmallFlowsTestTrafficFile,
+                null,
+                0);
+
         logger.logDetectorConfig(amfDetector, false);
     }
 
@@ -311,8 +318,7 @@ public class MultistageFilterTest {
             Integer goldenFN,
             Integer goldenFP) throws Exception {
 
-        PacketReader pr = PacketReaderFactory
-                .getPacketReader(inputTrafficFile);
+        PacketReader pr = PacketReaderFactory.getPacketReader(inputTrafficFile);
         Packet packet;
 
         while ((packet = pr.getNextPacket()) != null) {
@@ -338,6 +344,7 @@ public class MultistageFilterTest {
         System.out.println("num counters = " + detector.getNumOfCounters());
         System.out.println("Num of large flow caught: " + numOfLargeFlowCaught);
         System.out.println("Num of FP: " + numOfFP);
+        System.out.println("Num of FN: " + (numOfLargeFlows - numOfLargeFlowCaught));
         if (goldenFN != null) {
             assertTrue(numOfLargeFlowCaught == numOfLargeFlows - goldenFN);
         }

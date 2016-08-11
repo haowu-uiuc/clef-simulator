@@ -12,30 +12,54 @@ import largeflow.datatype.Packet;
 
 /**
  * flow memory using leaky bucket
+ * 
  * @author HaoWu
  *
  */
 public class FlowMemory {
 
     private int size; // number of buckets
+    private int bucket_threshold; // threshold of bucket
+    private int bucket_drainRate; // drain rate of bucket
+    private int linkCapacity;
+
+    // state
     private List<LeakyBucket> buckets;
     private Queue<Integer> idleBucketIdxs;
     private Map<FlowId, Integer> mapFlowToBucketIdx;
     private Map<Integer, FlowId> mapBucketIdxToFlow;
 
     public FlowMemory(int size,
-            int threshold,  // for bucket
-            int drainRate,  // for bucket
+            int threshold, // for bucket
+            int drainRate, // for bucket
             int linkCapacity) {
         this.size = size;
+        this.bucket_threshold = threshold;
+        this.bucket_drainRate = drainRate;
+        this.linkCapacity = linkCapacity;
         mapFlowToBucketIdx = new HashMap<>(size);
         mapBucketIdxToFlow = new HashMap<>(size);
         buckets = new ArrayList<LeakyBucket>(size);
         idleBucketIdxs = new LinkedList<>();
+        reset();
+    }
+
+    public void reset() {
+        mapFlowToBucketIdx.clear();
+        mapBucketIdxToFlow.clear();
+        buckets.clear();
+        idleBucketIdxs.clear();
         for (int i = 0; i < size; i++) {
             idleBucketIdxs.add(i);
-            buckets.add(new LeakyBucket(threshold, drainRate, linkCapacity));
+            buckets.add(new LeakyBucket(bucket_threshold,
+                    bucket_drainRate,
+                    linkCapacity));
         }
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+        reset();
     }
 
     /**
@@ -73,14 +97,15 @@ public class FlowMemory {
 
     /**
      * asscosiate a flow to the flow memory
-     * @return bucket index (>=0) - flow is added into the flow memory successufully
-     *         -1 - flow is not added into the flow memory
+     * 
+     * @return bucket index (>=0) - flow is added into the flow memory
+     *         successufully -1 - flow is not added into the flow memory
      */
     public Integer addFlow(FlowId flowId) {
         if (flowIsInFlowMemory(flowId)) {
             return getBucketIndex(flowId);
         }
-        
+
         if (!idleBucketIdxs.isEmpty()) {
             int bucketIdx = idleBucketIdxs.poll();
             associateFlowAndBucket(flowId, bucketIdx);
@@ -101,28 +126,28 @@ public class FlowMemory {
                 bucket.reset();
             }
         }
-        
+
         return -1;
     }
-    
+
     /**
-     * when the flow memory is full, 
-     * get the flow ID to remove from the flow memory
-     * Subclass can override this method to have other way 
-     * to pick up flow to remove
+     * when the flow memory is full, get the flow ID to remove from the flow
+     * memory Subclass can override this method to have other way to pick up
+     * flow to remove
+     * 
      * @return null means no need to remove flow from memory
      */
     protected FlowId getFlowToRemove() {
         if (mapBucketIdxToFlow.size() < size) {
             return null;
         }
-        // randomly pick up a bucket and 
+        // randomly pick up a bucket and
         // return the flow associated to the bucket
         int idx = (int) ((Math.random() - 0.000001) * size);
         FlowId flowId = mapBucketIdxToFlow.get(idx);
         return flowId;
     }
-    
+
     public boolean flowIsInFlowMemory(FlowId flowId) {
         return mapFlowToBucketIdx.containsKey(flowId);
     }
@@ -130,19 +155,19 @@ public class FlowMemory {
     public int numOfFlows() {
         return mapFlowToBucketIdx.size();
     }
-    
+
     private int getBucketIndex(FlowId flowId) {
         if (mapFlowToBucketIdx.containsKey(flowId)) {
             return mapFlowToBucketIdx.get(flowId);
         }
         return -1;
     }
-    
+
     private void associateFlowAndBucket(FlowId flowId, int bucketIdx) {
         mapFlowToBucketIdx.put(flowId, bucketIdx);
         mapBucketIdxToFlow.put(bucketIdx, flowId);
     }
-    
+
     private void deassociateFlowAndBucket(FlowId flowId, int bucketIdx) {
         mapFlowToBucketIdx.remove(flowId);
         mapBucketIdxToFlow.remove(bucketIdx);

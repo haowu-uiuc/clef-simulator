@@ -20,8 +20,10 @@ abstract class MultistageFilter extends Detector {
     protected Integer numOfStages;
     protected Integer sizeOfStage;
     protected Integer numOfCounters;
+    protected Double ratioOfFlowMemory = 0.5; // default value = 0.5
     protected Integer linkCapacity;
     protected List<RandomHashFunction<FlowId>> hashFuncs;
+    protected FlowMemoryFactory flowMemoryFactory;
 
     // states
     protected List<List<Bucket>> stages;
@@ -52,17 +54,39 @@ abstract class MultistageFilter extends Detector {
     public void reset() {
         super.reset();
         initHashFuncs();
+        if (flowMemory != null) {
+            flowMemory.reset();
+        }
     }
 
     @Override
     public void setNumOfCounters(Integer numOfCounters) throws Exception {
+        int numOfCountUsed = 0;
+        if (flowMemoryFactory != null) {
+            numOfCountUsed = (int) (numOfCounters * ratioOfFlowMemory);
+            flowMemory = flowMemoryFactory.createFlowMemory(numOfCountUsed);
+        }
         this.numOfCounters = numOfCounters;
-        sizeOfStage = numOfCounters / numOfStages;
+        sizeOfStage = (numOfCounters - numOfCountUsed) / numOfStages;
+        System.out.println("AMF Config: Flow Memory Counters: " + numOfCountUsed 
+                + ", Size of Stage: " + sizeOfStage + ", Num of Stages: " + numOfStages);
         reset();
     }
 
-    public void setFlowMemory(FlowMemory flowMemory) {
-        this.flowMemory = flowMemory;
+    public void setFlowMemoryFactory(FlowMemoryFactory flowMemoryFactory) throws Exception {
+        this.flowMemoryFactory = flowMemoryFactory;
+        flowMemory = flowMemoryFactory
+                .createFlowMemory((int) (numOfCounters * ratioOfFlowMemory));
+        setNumOfCounters(numOfCounters);
+    }
+
+    public void setRatioOfFlowMemory(double ratio) throws Exception {
+        this.ratioOfFlowMemory = ratio;
+        setNumOfCounters(numOfCounters);
+    }
+
+    public FlowMemory getFlowMemory() {
+        return flowMemory;
     }
 
     public Integer getNumOfStages() {
@@ -100,7 +124,8 @@ abstract class MultistageFilter extends Detector {
         // if no flow memory
         if (flowMemory == null) {
             // pass the packet into the multistage filter anyway
-            Map<FlowId, Double> flowsToBlock = processPacketInMultistage(packet);
+            Map<FlowId, Double> flowsToBlock = processPacketInMultistage(
+                    packet);
             GenericUtils.addAllNewEntriesIntoMap(blackList, flowsToBlock);
             if (flowsToBlock.containsKey(packet.flowId)) {
                 return false;
@@ -108,7 +133,7 @@ abstract class MultistageFilter extends Detector {
                 return true;
             }
         }
-        
+
         // if the flow is already in the flow memory,
         // OR
         // if the flow is not in flow memory then pass it to multistage filter,
@@ -135,7 +160,7 @@ abstract class MultistageFilter extends Detector {
             // it is based on the periodical check.
             Set<FlowId> flowsToFM = new HashSet<>();
             flowsToFM.addAll(processPacketInMultistage(packet).keySet());
-            
+
             // pass flows to flow memory
             Set<FlowId> tmpFlowIds = new HashSet<>(flowsToFM);
             for (FlowId flowId : tmpFlowIds) {

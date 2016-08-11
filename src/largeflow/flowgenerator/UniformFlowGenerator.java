@@ -142,6 +142,7 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
 		// generate large flow in uniform distribution
         if (dutyCycle != null && period != null && dutyCycle < period) {
             // generate burst flows
+            System.out.println("Generating Burst Flows");
             for (int fid = 1; fid <= numOfLargeFlows; fid++) {
                 double periodStartTime = flowTime[fid - 1];
                 
@@ -174,6 +175,7 @@ public class UniformFlowGenerator extends UniAttackRateFlowGenerator {
             
         } else {
             // generate normal large flows
+            System.out.println("Generating Flat Flows");
             for (int fid = 1; fid <= numOfLargeFlows; fid++) {
                 while (flowTime[fid - 1] < timeInterval) {
                     int s = (int) flowTime[fid - 1];
