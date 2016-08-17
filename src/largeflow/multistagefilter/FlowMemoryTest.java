@@ -79,5 +79,16 @@ public class FlowMemoryTest {
         assertTrue(numFlowLeft == 2);
         assertTrue(fm.flowIsInFlowMemory(new FlowId(5)));
     }
+    
+    @Test
+    public void testFlowMemoryWithNoLimit() {
+        FlowMemory fm = new FlowMemory(3, 4000, 10000, 1000000);
+        fm.setNoSizeLimit();
+        for (int i = 0; i < 8; i++) {
+            Packet packet = packets.get(i);
+            fm.processPacket(packet);
+        }
+        assertTrue(fm.numOfFlows() == 4);
+    }
 
 }

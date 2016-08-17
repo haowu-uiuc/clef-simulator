@@ -18,7 +18,13 @@ import largeflow.datatype.Packet;
  */
 public class FlowMemory {
 
+    // when noSizeLimit == true, the size of buckets is MAX_SIZE
+    private static int MAX_SIZE = 100000;
+    
     private int size; // number of buckets
+    // true for no flow size limit, thus no overflow in flow memory
+    // but to prevent system memory overflow, we set a MAX_SIZE for flow memory
+    private boolean noSizeLimit = false;
     private int bucket_threshold; // threshold of bucket
     private int bucket_drainRate; // drain rate of bucket
     private int linkCapacity;
@@ -59,9 +65,21 @@ public class FlowMemory {
 
     public void setSize(int size) {
         this.size = size;
+        if (noSizeLimit) {
+            this.size = MAX_SIZE;
+        }
         reset();
     }
-
+    
+    public void setNoSizeLimit() {
+        noSizeLimit = true;
+        setSize(MAX_SIZE);
+    }
+    
+    public void unsetNoSizeLimit() {
+        noSizeLimit = false;
+    }
+    
     /**
      * Process a packet in the flow memory. When the memory is full, the flow of
      * the packet may not be added into the flow memory
@@ -104,6 +122,11 @@ public class FlowMemory {
     public Integer addFlow(FlowId flowId) {
         if (flowIsInFlowMemory(flowId)) {
             return getBucketIndex(flowId);
+        }
+        
+        if (numOfFlows() == MAX_SIZE) {
+            // the number of flows exceeds the MAX SIZE LIMIT
+            System.out.println("Warning: the number of flows exceeds the MAX_SIZE of the flow memory");
         }
 
         if (!idleBucketIdxs.isEmpty()) {

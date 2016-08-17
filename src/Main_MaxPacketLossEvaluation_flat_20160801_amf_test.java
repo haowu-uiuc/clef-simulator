@@ -159,6 +159,8 @@ public class Main_MaxPacketLossEvaluation_flat_20160801_amf_test {
         FlowMemoryFactory fm_factory = new FlowMemoryFactory(burstTolerance,
                 largeFlowRate,
                 outboundLinkCapacity);
+        fm_factory.setNoSizeLimit();
+        
         FMFDetector fmfDetector = new FMFDetector("fmf",
                 numOfStages_fmf,
                 sizeOfStage_fmf,
