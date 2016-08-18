@@ -20,6 +20,7 @@ public class FlowMemory {
 
     // when noSizeLimit == true, the size of buckets is MAX_SIZE
     private static int MAX_SIZE = 100000;
+    private boolean DEBUG = false;
     
     private int size; // number of buckets
     // true for no flow size limit, thus no overflow in flow memory
@@ -128,12 +129,19 @@ public class FlowMemory {
             // the number of flows exceeds the MAX SIZE LIMIT
             System.out.println("Warning: the number of flows exceeds the MAX_SIZE of the flow memory");
         }
+        
+        if (DEBUG) {
+            System.out.println("INFO: Number of flows: " + numOfFlows());
+        }
 
         if (!idleBucketIdxs.isEmpty()) {
             int bucketIdx = idleBucketIdxs.poll();
             associateFlowAndBucket(flowId, bucketIdx);
             return bucketIdx;
         } else {
+            if (DEBUG) {
+                System.out.println("INFO: Flow Memory is full");
+            }
             // The flow is not in the flow memory yet,
             // decide a flow to remove and add this flow into flow memory,
             // or keep previous flows in the flow memory and skip this flow
@@ -194,5 +202,13 @@ public class FlowMemory {
     private void deassociateFlowAndBucket(FlowId flowId, int bucketIdx) {
         mapFlowToBucketIdx.remove(flowId);
         mapBucketIdxToFlow.remove(bucketIdx);
+    }
+    
+    public void enableDebug() {
+        DEBUG = true;
+    }
+    
+    public void disableDebug() {
+        DEBUG = false;
     }
 }
