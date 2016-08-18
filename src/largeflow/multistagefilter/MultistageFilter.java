@@ -16,6 +16,8 @@ import largeflow.utils.RandomHashFunction;
 
 abstract class MultistageFilter extends Detector {
 
+    private boolean DEBUG = false;
+    
     // parameters
     protected Integer numOfStages;
     protected Integer sizeOfStage;
@@ -68,8 +70,10 @@ abstract class MultistageFilter extends Detector {
         }
         this.numOfCounters = numOfCounters;
         sizeOfStage = (numOfCounters - numOfCountUsed) / numOfStages;
-        System.out.println("AMF Config: Flow Memory Counters: " + numOfCountUsed 
-                + ", Size of Stage: " + sizeOfStage + ", Num of Stages: " + numOfStages);
+        if (DEBUG) {
+            System.out.println("AMF Config: Flow Memory Counters: " + numOfCountUsed 
+                    + ", Size of Stage: " + sizeOfStage + ", Num of Stages: " + numOfStages);
+        }
         reset();
     }
 
@@ -179,6 +183,14 @@ abstract class MultistageFilter extends Detector {
         return true;
     }
 
+    public void enableDebug() {
+        DEBUG = true;
+    }
+    
+    public void disableDebug() {
+        DEBUG = false;
+    }
+    
     /**
      * process packet in the multi-stages.
      * 

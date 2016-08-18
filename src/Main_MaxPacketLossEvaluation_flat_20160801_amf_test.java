@@ -160,6 +160,7 @@ public class Main_MaxPacketLossEvaluation_flat_20160801_amf_test {
                 largeFlowRate,
                 outboundLinkCapacity);
         fm_factory.setNoSizeLimit();
+        fm_factory.enableDebug();
         
         FMFDetector fmfDetector = new FMFDetector("fmf",
                 numOfStages_fmf,
@@ -169,6 +170,7 @@ public class Main_MaxPacketLossEvaluation_flat_20160801_amf_test {
                 threshold_fmf);
         fmfDetector.setRatioOfFlowMemory(ratioOfFlowMemoryToFMF);
         fmfDetector.setFlowMemoryFactory(fm_factory);
+        fmfDetector.enableDebug();
 
         // setup AMF
         AMFDetector amfDetector = new AMFDetector("amf",
@@ -179,6 +181,7 @@ public class Main_MaxPacketLossEvaluation_flat_20160801_amf_test {
                 threshold_amf);
         amfDetector.setRatioOfFlowMemory(ratioOfFlowMemoryToAMF);
         amfDetector.setFlowMemoryFactory(fm_factory);
+        amfDetector.enableDebug();
         
         // setup routers
         AdvancedRouter router1 = new AdvancedRouter("router_eardet",
@@ -287,7 +290,7 @@ public class Main_MaxPacketLossEvaluation_flat_20160801_amf_test {
         evaluator.setBaseDetector(baseDetector);
 //        evaluator.addRouter(router1);
 //        evaluator.addRouter(router2);
-//        evaluator.addRouter(router3);
+        evaluator.addRouter(router3);
         evaluator.addRouter(router4);
         evaluator.setStartRound(startRound);
         evaluator.setNumOfRepeatRounds(numOfRepeatRounds);
