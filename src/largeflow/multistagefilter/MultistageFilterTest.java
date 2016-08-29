@@ -46,7 +46,7 @@ public class MultistageFilterTest {
         numOfLargeFlows = 20;
         largeFlowRate = 50000;
         smallFlowRate = 1500;
-        resolution = (int) (0.02 * largeFlowRate);
+        resolution = (int) (0.1 * largeFlowRate);
 
         File outputDir = new File("./data/test");
         inputTestTrafficFile = new File(
@@ -295,8 +295,10 @@ public class MultistageFilterTest {
                 linkCapacity,
                 drainRate,
                 threshold);
+//        fm_factory.enableDebug();
         amfDetector.setFlowMemoryFactory(fm_factory);
         amfDetector.setRatioOfFlowMemory(0.5);
+//        amfDetector.enableDebug();
 
         LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
                 "test_LeakyBucketDetector", threshold, drainRate, linkCapacity);
