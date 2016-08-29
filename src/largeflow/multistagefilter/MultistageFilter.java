@@ -79,8 +79,6 @@ abstract class MultistageFilter extends Detector {
 
     public void setFlowMemoryFactory(FlowMemoryFactory flowMemoryFactory) throws Exception {
         this.flowMemoryFactory = flowMemoryFactory;
-        flowMemory = flowMemoryFactory
-                .createFlowMemory((int) (numOfCounters * ratioOfFlowMemory));
         setNumOfCounters(numOfCounters);
     }
 

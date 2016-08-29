@@ -54,6 +54,8 @@ public class AMFDetector extends MultistageFilter {
             return flowsToFM;
         }
 
+        Boolean shouldBlackList = true;
+        
         for (int i = 0; i < numOfStages; i++) {
             // get the buckets of the flow
             Integer index = hashFuncs.get(i).getHashCode(packet.flowId);
@@ -62,10 +64,14 @@ public class AMFDetector extends MultistageFilter {
             Bucket bucket = stages.get(i).get(index);
             bucket.processPacket(packet);
             if (!bucket.check()) {
-                Double blackListTime = packet.time
-                        + (double) packet.size / (double) linkCapacity;
-                flowsToFM.put(packet.flowId, blackListTime);
+                shouldBlackList = false;
             }
+        }
+        
+        if (shouldBlackList) {
+            Double blackListTime = packet.time
+                    + (double) packet.size / (double) linkCapacity;
+            flowsToFM.put(packet.flowId, blackListTime);
         }
 
         return flowsToFM;
