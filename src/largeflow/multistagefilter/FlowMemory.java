@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
@@ -185,6 +186,10 @@ public class FlowMemory {
 
     public int numOfFlows() {
         return mapFlowToBucketIdx.size();
+    }
+    
+    public Set<FlowId> getFlows() {
+        return mapFlowToBucketIdx.keySet();
     }
 
     private int getBucketIndex(FlowId flowId) {
