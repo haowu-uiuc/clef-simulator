@@ -1,11 +1,14 @@
 import os
+import time
 
 startRound = 0
 numOfRounds = 5
-expName = "packet_loss_flat_20160612_mf"
-jarName = "Main_MaxPacketLossEvaluation_flat_20160612_mf.jar"
+expName = "packet_loss_config_test_20160830"
+jarName = "Main_MaxPacketLossEvaluation_configurable.jar"
 scratchExpDir = "/home/haowu11/scratch/large-flow"
 counter_file_name = "counter.txt"
+config_file_name = expName + ".json"
+rate_file_names = ["rate-0.txt", "rate-1.txt", "rate-2.txt"]
 
 scriptDir = "./job_scripts/" + expName
 if not os.path.exists(scriptDir):
@@ -20,7 +23,7 @@ pbs_template = """\
 #
 #PBS -l walltime=04:00:00
 #PBS -l nodes=1:ppn=1
-#PBS -N LFJ-{exp_name}
+#PBS -N LFJ-{date}
 #PBS -q secondary
 #PBS -j oe
 ###PBS -m be
@@ -40,10 +43,10 @@ export JOBID=`echo $PBS_JOBID | cut -d"." -f1`
 module load java/1.8
 
 # Run JAVA code
-java -Xms1024m -Xmx2048m -d64 -jar {jar_name} {exp_name} """.format(
-	exp_name=expName,
-	jar_name=jarName,
-	scratch_exp_dir=scratchExpDir)
+java -Xms1024m -Xmx2048m -d64 -jar {jar_name}""".format(
+    date=time.strftime("%x"),
+    jar_name=jarName,
+    scratch_exp_dir=scratchExpDir)
 
 shell_file = open(scriptDir + "/run_jobs.sh", "w")
 
@@ -54,22 +57,27 @@ mkdir -p {scratch_exp_dir}/data
 cp -r /home/haowu11/large-flow/data/real_traffic {scratch_exp_dir}/data
 cp -r /home/haowu11/large-flow/atk_rate {scratch_exp_dir}
 cp -r /home/haowu11/large-flow/counter {scratch_exp_dir}
+cp -r /home/haowu11/large-flow/config {scratch_exp_dir}
 """.format(
-	jar_name=jarName,
-	scratch_exp_dir=scratchExpDir)
+    jar_name=jarName,
+    scratch_exp_dir=scratchExpDir)
 
-shell_file.write(cmd);
+shell_file.write(cmd)
 
 for i in range(startRound, numOfRounds + startRound):
-	for j in range(0, 3):
-		f = open(scriptDir + "/round-" + str(i)
-			+ "-rate-" + str(j) + ".pbs", "w")
-		f.write(pbs_template)
-		f.write(str(i) + " 1")
-		f.write(" --rate atk_rate/rate-" + str(j) + ".txt")
-		f.write(" --counter counter/" + counter_file_name)
-		f.close()
-		shell_file.write("qsub ./round-" + str(i)
-			+ "-rate-" + str(j) + ".pbs\n")
+    for rate_file_name in rate_file_names:
+        rate_file_prefix = rate_file_name.split('.')[0]
+        pbs_file_name = "round-" + str(i) + "-" + \
+            rate_file_prefix + ".pbs"
+
+        f = open(scriptDir + "/" + pbs_file_name, "w")
+        f.write(pbs_template)
+        f.write(" --start_round " + str(i))
+        f.write(" --repeat_rounds 1")
+        f.write(" --rate atk_rate/" + rate_file_name)
+        f.write(" --counter counter/" + counter_file_name)
+        f.write(" --config config/" + config_file_name)
+        f.close()
+        shell_file.write("qsub ./" + pbs_file_name + "\n")
 
 shell_file.close()
