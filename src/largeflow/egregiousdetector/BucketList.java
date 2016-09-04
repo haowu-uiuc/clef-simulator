@@ -80,6 +80,7 @@ class BucketList {
 	/**
 	 * To find the top-k buckets, which have the most counter values.
 	 * Q1: most counter value or the most {counter value} / {reservation bandwidth} ?
+	 * ***Right now, we are using the most {counter value}
 	 * Q2: Is this cheap to implement in hardware?
 	 * @param k
 	 * @return

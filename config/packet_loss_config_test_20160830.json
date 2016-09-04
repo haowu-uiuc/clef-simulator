@@ -1,5 +1,5 @@
 {
-    "exp_name": "test_packet_loss_exp",
+    "exp_name": "packet_loss_config_test_20160830",
     "run_EARDet": true,
     "run_EFD": true,
     "run_FMF": true,
