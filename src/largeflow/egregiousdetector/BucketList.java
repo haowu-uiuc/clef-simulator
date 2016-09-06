@@ -15,6 +15,8 @@ class BucketList {
 	private List<Bucket> bucketList;
 	private RandomHashFunction<FlowId> hashFunc;
 
+    private boolean splitByRelativeValue = false;
+	
 	public BucketList(Integer size, Integer depth) {
 		this.size = size;
 		this.depth = depth;
@@ -27,6 +29,10 @@ class BucketList {
 		}
 	}
 
+	public void splitByRelativeValue() {
+	    splitByRelativeValue = true;
+	}
+	
 	public Integer size() {
 		return size;
 	}
@@ -56,7 +62,11 @@ class BucketList {
 		// split these buckets
 		for (Bucket bucket : topBuckets) {
 			bucket.createChildBucketList(size);
-			childBucketLists.add(bucket.getChildBucketList());
+			BucketList childBucketList = bucket.getChildBucketList();
+			if (splitByRelativeValue) {
+			    childBucketList.splitByRelativeValue();
+			}
+			childBucketLists.add(childBucketList);
 		}
 
 		return childBucketLists;
@@ -105,6 +115,9 @@ class BucketList {
 		}
 
 		Comparator<Bucket> comparator = new BucketValueComparator();
+		if (splitByRelativeValue) {
+		     comparator = new BucketRelativeValueComparator();
+		}
 		PriorityQueue<Bucket> queue = new PriorityQueue<>(size, comparator);
 		for (int i = 0; i < size; i++) {
 			Bucket bucket = get(i);

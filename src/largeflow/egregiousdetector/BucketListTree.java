@@ -18,6 +18,8 @@ class BucketListTree {
 
 	private BucketList rootBucketList;
 	private List<BucketList> bottomBucketLists;
+	
+	private boolean splitByRelativeValue = false;
 
 	public BucketListTree(Integer maxDepth, Integer fanout,
 			Integer numOfBranches, ReservationDatabase resDb) throws Exception {
@@ -42,6 +44,9 @@ class BucketListTree {
 	public void reset() {
 		currentLevel = 1;
 		rootBucketList = new BucketList(fanout, currentLevel);
+		if (splitByRelativeValue) {
+		    rootBucketList.splitByRelativeValue();
+		}
 		bottomBucketLists = new ArrayList<>();
 		bottomBucketLists.add(rootBucketList);
 	}
@@ -53,6 +58,11 @@ class BucketListTree {
 
 	public void processPacket(Packet packet) {
 		rootBucketList.processPacket(packet, resDb);
+	}
+	
+	public void splitByRelativeValue() {
+	    splitByRelativeValue = true;
+	    rootBucketList.splitByRelativeValue();
 	}
 
 	public Integer getCurrentLevel() {
