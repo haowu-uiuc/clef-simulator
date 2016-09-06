@@ -187,9 +187,12 @@ public class Main_MaxPacketLossEvaluation_configurable {
         double burst_length = period;
         double burst_period = period / dutyCycle;
         
+        boolean split_by_relative_value = false;
+        
         if (EFD_config.length() > 0) {
             eg_gamma = EFD_config.getInt("gamma");
             eg_burst = EFD_config.getInt("burst");
+            split_by_relative_value = EFD_config.getBoolean("split_by_relative_value");
         }
         
         // for FMF
@@ -249,6 +252,9 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 tmpNumOfCounters);
         egDetector.setEstimatedNumOfFlows(
                 numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+        if (split_by_relative_value) {
+            egDetector.splitBucketByRelativeValue();
+        }
         // egDetector.enableDebug();
 
         // setup FMF
