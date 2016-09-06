@@ -134,10 +134,6 @@ public class EgregiousFlowDetector extends Detector {
 
 	@Override
 	public boolean processPacket(Packet packet) throws Exception {
-	    if (!splitByRelativeValue) {
-	        System.out.println(splitByRelativeValue);
-	    }
-	    
 		if (packet.time < timestampOfPeriodBegin) {
 			throw new Exception("The timing of packet is incorrect!"
 					+ " Time of packet is smaller than current time");
