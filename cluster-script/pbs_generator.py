@@ -61,9 +61,13 @@ shell_file = open(scriptDir + "/run_jobs.sh", "w")
 cmd = """\
 cp /home/haowu11/large-flow/{jar_name} {scratch_exp_dir}/
 mkdir -p {scratch_exp_dir}/data
+rm -r {scratch_exp_dir}/data/real_traffic
 cp -r /home/haowu11/large-flow/data/real_traffic {scratch_exp_dir}/data
+rm -r {scratch_exp_dir}/atk_rate
 cp -r /home/haowu11/large-flow/atk_rate {scratch_exp_dir}
+rm -r {scratch_exp_dir}/counter
 cp -r /home/haowu11/large-flow/counter {scratch_exp_dir}
+rm -r {scratch_exp_dir}/config
 cp -r /home/haowu11/large-flow/config {scratch_exp_dir}
 """.format(
     jar_name=jarName,
