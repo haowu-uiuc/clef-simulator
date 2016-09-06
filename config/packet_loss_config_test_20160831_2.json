@@ -1,0 +1,45 @@
+{
+    "exp_name": "packet_loss_config_test_20160831_2",
+    "run_EARDet": true,
+    "run_EFD": true,
+    "run_FMF": true,
+    "run_AMF": true,
+    "debug_mode": false,
+    "traffic_config": {
+        "inbound_link_capacity": 1000000000,
+        "outbound_link_capacity": 500000000,
+        "time_interval": 50,
+        "per_flow_reservation": 50000,
+        "full_use_flow_packet_size": 500,
+        "num_full_use_flows": 6500,
+        "num_under_use_flows": 500,
+        "attack_flow_packet_size": 500,
+        "num_attack_flows": 10,
+        "is_burst_attack": false,
+        "burst_duty_cycle_ratio": 0.1,
+        "max_packet_size": 1514,
+        "flow_spec_burst_tolerance": 6056,
+    },
+    "EARDet_config": {
+        "gamma_low": 50000,
+        "gamma_high": 200000,
+        "beta_low": 6056,
+        "max_incubation_time": 1.0,
+    },
+    "EFD_config": {
+        "gamma": 50000,
+        "burst": 6056,
+    },
+    "FMF_config": {
+        "period": 0.1,
+        "num_stages": 4,
+        "flow_memory": true,
+        "flow_memory_counter_ratio": 0.5,
+    },
+    "AMF_config": {
+        "num_stages": 4,
+        "flow_memory": true,
+        "flow_memory_counter_ratio": 0.5,
+    }
+    
+}
