@@ -1,5 +1,5 @@
 {
-    "exp_name": "packet_loss_config_test_20160831_2",
+    "exp_name": "packet_loss_config_test_20160906",
     "run_EARDet": true,
     "run_EFD": true,
     "run_FMF": true,
@@ -8,7 +8,7 @@
     "traffic_config": {
         "inbound_link_capacity": 1000000000,
         "outbound_link_capacity": 500000000,
-        "time_interval": 20,
+        "time_interval": 10,
         "per_flow_reservation": 50000,
         "full_use_flow_packet_size": 500,
         "num_full_use_flows": 6500,
@@ -29,7 +29,7 @@
     "EFD_config": {
         "gamma": 50000,
         "burst": 6056,
-        "split_by_relative_value": false,
+        "split_by_relative_value": true,
     },
     "FMF_config": {
         "period": 0.1,

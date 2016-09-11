@@ -10,6 +10,13 @@ counter_file_name = "counter.txt"
 config_file_name = expName + ".json"
 rate_file_names = ["rate-0.txt", "rate-1.txt", "rate-2.txt"]
 
+rate_dir = None
+rate_dir = 'rate_1_in_1'
+if rate_dir is not None:
+    rate_file_names = []
+    for file in os.listdir('atk_rate/' + rate_dir):
+        rate_file_names.append(file)
+
 scriptDir = "./job_scripts/" + expName
 if not os.path.exists(scriptDir):
     os.makedirs(scriptDir)
@@ -54,9 +61,13 @@ shell_file = open(scriptDir + "/run_jobs.sh", "w")
 cmd = """\
 cp /home/haowu11/large-flow/{jar_name} {scratch_exp_dir}/
 mkdir -p {scratch_exp_dir}/data
+rm -r {scratch_exp_dir}/data/real_traffic
 cp -r /home/haowu11/large-flow/data/real_traffic {scratch_exp_dir}/data
+rm -r {scratch_exp_dir}/atk_rate
 cp -r /home/haowu11/large-flow/atk_rate {scratch_exp_dir}
+rm -r {scratch_exp_dir}/counter
 cp -r /home/haowu11/large-flow/counter {scratch_exp_dir}
+rm -r {scratch_exp_dir}/config
 cp -r /home/haowu11/large-flow/config {scratch_exp_dir}
 """.format(
     jar_name=jarName,
@@ -66,7 +77,7 @@ shell_file.write(cmd)
 
 for i in range(startRound, numOfRounds + startRound):
     for rate_file_name in rate_file_names:
-        rate_file_prefix = rate_file_name.split('.')[0]
+        rate_file_prefix = rate_file_name.split('/')[1].split('.')[0]
         pbs_file_name = "round-" + str(i) + "-" + \
             rate_file_prefix + ".pbs"
 
@@ -74,7 +85,10 @@ for i in range(startRound, numOfRounds + startRound):
         f.write(pbs_template)
         f.write(" --start_round " + str(i))
         f.write(" --repeat_rounds 1")
-        f.write(" --rate atk_rate/" + rate_file_name)
+        if rate_dir is None:
+            f.write(" --rate atk_rate/" + rate_file_name)
+        else:
+            f.write(" --rate atk_rate/" + rate_dir + '/' + rate_file_name)
         f.write(" --counter counter/" + counter_file_name)
         f.write(" --config config/" + config_file_name)
         f.close()

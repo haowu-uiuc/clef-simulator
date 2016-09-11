@@ -100,7 +100,6 @@ public class Main_MaxPacketLossEvaluation_configurable {
         int inboundLinkCapacity = 1000 * 1000 * 1000; // Byte / sec
         int outboundLinkCapacity = 500 * 1000 * 1000; // Byte / sec
         int timeInterval = 10; // seconds, length of packet stream
-        int maxPacketSize = NetworkConfig.maxPacketSize;
         
         boolean BURST_ATTACK = false; // if false then we do flat attack
         double dutyCycle = 0.1; // from 0 to 1.0
@@ -109,10 +108,11 @@ public class Main_MaxPacketLossEvaluation_configurable {
             inboundLinkCapacity = traffic_config.getInt("inbound_link_capacity");
             outboundLinkCapacity = traffic_config.getInt("outbound_link_capacity");
             timeInterval = traffic_config.getInt("time_interval");
-            maxPacketSize = traffic_config.getInt("max_packet_size");
+            NetworkConfig.maxPacketSize = traffic_config.getInt("max_packet_size");
             BURST_ATTACK = traffic_config.getBoolean("is_burst_attack");
             dutyCycle = traffic_config.getDouble("burst_duty_cycle_ratio");
         }
+        int maxPacketSize = NetworkConfig.maxPacketSize;
         
         // for flow generator
         // per-flow reservation bandwidth
@@ -187,9 +187,12 @@ public class Main_MaxPacketLossEvaluation_configurable {
         double burst_length = period;
         double burst_period = period / dutyCycle;
         
+        boolean split_by_relative_value = false;
+        
         if (EFD_config.length() > 0) {
             eg_gamma = EFD_config.getInt("gamma");
             eg_burst = EFD_config.getInt("burst");
+            split_by_relative_value = EFD_config.getBoolean("split_by_relative_value");
         }
         
         // for FMF
@@ -249,6 +252,9 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 tmpNumOfCounters);
         egDetector.setEstimatedNumOfFlows(
                 numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+        if (split_by_relative_value) {
+            egDetector.splitBucketByRelativeValue();
+        }
         // egDetector.enableDebug();
 
         // setup FMF

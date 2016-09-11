@@ -37,6 +37,9 @@ public class EgregiousFlowDetector extends Detector {
 	private ReservationDatabase resDb; // the system to query the reservation
 										// for each bandwidth
 	private boolean debug = false;
+	
+	// split the bucket by {value} / {amount of reservation}
+	private boolean splitByRelativeValue = false;
 
 	public EgregiousFlowDetector(String detectorName,
 			Integer gamma,
@@ -79,6 +82,9 @@ public class EgregiousFlowDetector extends Detector {
                 fanout,
                 numOfBranches,
                 resDb);
+	    if (splitByRelativeValue) {
+	        tree.splitByRelativeValue();
+	    }
 	}
 
 	@Override
@@ -119,6 +125,11 @@ public class EgregiousFlowDetector extends Detector {
 
 	public Integer getNumOfBranches() {
 		return numOfBranches;
+	}
+	
+	public void splitBucketByRelativeValue() {
+	    splitByRelativeValue = true;
+	    tree.splitByRelativeValue();
 	}
 
 	@Override
@@ -177,6 +188,9 @@ public class EgregiousFlowDetector extends Detector {
 				fanout,
 				numOfBranches,
 				resDb);
+		if (splitByRelativeValue) {
+		    tree.splitByRelativeValue();
+		}
 	}
 
 	@Override

@@ -29,6 +29,7 @@
     "EFD_config": {
         "gamma": 50000,
         "burst": 6056,
+        "split_by_relative_value": false,
     },
     "FMF_config": {
         "period": 0.1,

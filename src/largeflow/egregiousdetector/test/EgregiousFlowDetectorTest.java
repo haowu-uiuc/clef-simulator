@@ -90,8 +90,9 @@ public class EgregiousFlowDetectorTest {
                 linkCapacity,
                 numOfCounters);
         detector.setEstimatedNumOfFlows(linkCapacity / gamma);
+        detector.splitBucketByRelativeValue();
         detector.enableDebug();
-
+        
         LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
                 "test_leaky_bucket_detector", burst, gamma, linkCapacity);
 
