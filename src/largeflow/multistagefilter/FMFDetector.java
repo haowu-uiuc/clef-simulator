@@ -10,7 +10,6 @@ import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
 import largeflow.emulator.Logger;
 import largeflow.emulator.NetworkConfig;
-import largeflow.utils.GenericUtils;
 
 public class FMFDetector extends MultistageFilter {
 
@@ -82,18 +81,22 @@ public class FMFDetector extends MultistageFilter {
         if (lastPeriod < currentPeriod) {
             // if currentPeriod is larger than lastPeriod,
             // check the buckets and reset buckets
-            flowsToFM.putAll(checkAllFlows((lastPeriod + 1) * T));
             resetBucketList();
-            if (flowsToFM.containsKey(packet.flowId)) {
-                return flowsToFM;
-            }
         }
 
         if (startPeriod == endPeriod || !considerPacketCrossPeriods) {
             // if the packet does not cross two periods
             // PS: if considerPacketCrossPeriods == true,
             // then we will ignore the "else" branch anyway.
-            processPacketForAllStages(packet);
+            if (checkFlowWithShielding(packet)) {
+                flowsToFM.put(packet.flowId, packetEndTime);
+            } else {
+                processPacketForAllStages(packet);
+            }
+            
+            // check the bucket to decide whether the current flow violates
+            // the threshold
+            
 
         } else {
             // if the packet cross two periods
@@ -109,27 +112,30 @@ public class FMFDetector extends MultistageFilter {
             Packet firstHalfPacket = new Packet(packet.flowId,
                     packet.size - nextPeriodPacketAmount,
                     packet.time);
-            processPacketForAllStages(firstHalfPacket);
-
-            // check the bucket value,
-            // and include flows return into flows sending to flow memory
-            // reset the bucket, and add nextPeriodPacketAmount
-            Map<FlowId, Double> flowsPassedMF = checkAllFlows(
-                    (currentPeriod + 1) * T);
-            GenericUtils.addAllNewEntriesIntoMap(flowsToFM, flowsPassedMF);
-            resetBucketList();
-
-            currentPeriod = endPeriod;
-
-            if (flowsToFM.containsKey(packet.flowId)) {
+            
+            // check the first half packet
+            if (checkFlowWithShielding(firstHalfPacket)) {
+                flowsToFM.put(packet.flowId, (currentPeriod + 1) * T);
+                resetBucketList();
+                currentPeriod = endPeriod;
                 return flowsToFM;
+            } else {
+                processPacketForAllStages(firstHalfPacket);
             }
+            
+            // end this period and go to the next
+            resetBucketList();
+            currentPeriod = endPeriod;
 
             // add the other part of the packet into the next period
             Packet secondHalfPacket = new Packet(packet.flowId,
                     nextPeriodPacketAmount,
                     packet.time);
-            processPacketForAllStages(secondHalfPacket);
+            if (checkFlowWithShielding(secondHalfPacket)) {
+                flowsToFM.put(packet.flowId, packetEndTime);
+            } else {
+                processPacketForAllStages(secondHalfPacket);
+            }
         }
 
         return flowsToFM;
@@ -182,52 +188,42 @@ public class FMFDetector extends MultistageFilter {
                 + considerPacketCrossPeriods + "\n");
     }
 
+    /**
+     * update buckets with conservative updating optimization
+     * @param packet
+     */
     private void processPacketForAllStages(Packet packet) {
+        // find the bucket with minimum value
+        Bucket minBucket = stages.get(0).get(
+                hashFuncs.get(0).getHashCode(packet.flowId));
+        int minStageIndex = 0;
+        for (int i = 1; i < numOfStages; i++) {
+            Bucket curBucket = stages.get(i).get(
+                    hashFuncs.get(i).getHashCode(packet.flowId));
+            if (curBucket.getValue() < minBucket.getValue()) {
+                minBucket = curBucket;
+                minStageIndex = i;
+            }
+        }
+        
+        // add packet size to the min bucket
+        minBucket.processPacket(packet);
+        
         for (int i = 0; i < numOfStages; i++) {
+            if (i == minStageIndex) {
+                continue;
+            }
+            
             // get the buckets of the flow
             Integer index = hashFuncs.get(i).getHashCode(packet.flowId);
 
             // process packet into its buckets
             Bucket bucket = stages.get(i).get(index);
-            bucket.processPacket(packet);
-        }
-    }
-
-    private Map<FlowId, Double> checkAllFlows(double checkTime) {
-        Map<FlowId, Double> flowsToFM = new HashMap<>();
-
-        for (int i = 0; i < sizeOfStage; i++) {
-            if (!stages.get(0).get(i).check()) {
-                continue;
-            }
-
-            List<FlowId> flowIds = hashFuncs.get(0).getKeys(i);
-            for (FlowId flowId : flowIds) {
-                if (blackList.containsKey(flowId) || (flowMemory != null
-                        && flowMemory.flowIsInFlowMemory(flowId))) {
-                    // if the flow is already in blacklist,
-                    // or flow memory, then skip
-                    continue;
-                }
-
-                boolean passedMultistageFilter = true;
-                for (int j = 0; j < numOfStages; j++) {
-                    int bucketIndex = hashFuncs.get(j).getHashCode(flowId);
-                    if (!stages.get(j).get(bucketIndex).check()) {
-                        passedMultistageFilter = false;
-                        break;
-                    }
-                }
-
-                if (passedMultistageFilter) {
-                    // put flows into flow memory the flowId
-                    flowsToFM.put(flowId, checkTime);
-                }
-
+            
+            // the bucket value = max(old_value, min_bucket_value)
+            if (bucket.getValue() < minBucket.getValue()) {
+                bucket.copyFrom(minBucket);
             }
         }
-
-        return flowsToFM;
     }
-
 }

@@ -189,6 +189,18 @@ abstract class MultistageFilter extends Detector {
         DEBUG = false;
     }
     
+    protected boolean checkFlowWithShielding(Packet packet) {
+        boolean passedMultistageFilter = true;
+        for (int i = 0; i < numOfStages; i++) {
+            int bucketIndex = hashFuncs.get(i).getHashCode(packet.flowId);
+            if (!stages.get(i).get(bucketIndex).checkWithShielding(packet.size)) {
+                passedMultistageFilter = false;
+            }
+        }
+        
+        return passedMultistageFilter;
+    }
+    
     /**
      * process packet in the multi-stages.
      * 

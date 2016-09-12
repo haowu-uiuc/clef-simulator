@@ -133,7 +133,7 @@ public class MultistageFilterTest {
 
         packetList.add(new Packet(new FlowId("1"), 1000, 0.35));
         packetList.add(new Packet(new FlowId("1"), 0, 0.401));
-
+        
         Double T = 0.1;
         Integer threshold = 1500;
         Integer linkCapacity = 100000;
@@ -151,9 +151,10 @@ public class MultistageFilterTest {
         int i = 0;
         // period 0
         fmfDetector.processPacket(packetList.get(i++));
+        System.out.println(fmfDetector.getBlackList());
         assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
-        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
         assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.getBlackList().remove(new FlowId("1"));
@@ -179,7 +180,7 @@ public class MultistageFilterTest {
 
         // period 3
         fmfDetector.processPacket(packetList.get(i++));
-        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
         assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
 
@@ -191,7 +192,7 @@ public class MultistageFilterTest {
         fmfDetector.processPacket(packetList.get(i++));
         assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
-        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
         assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.getBlackList().remove(new FlowId("1"));
@@ -210,7 +211,7 @@ public class MultistageFilterTest {
         fmfDetector.processPacket(packetList.get(i++));
         assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
-        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.processPacket(packetList.get(i++));
         assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
         fmfDetector.getBlackList().remove(new FlowId("1"));
@@ -222,6 +223,43 @@ public class MultistageFilterTest {
         fmfDetector.processPacket(packetList.get(i++));
         assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
 
+    }
+    
+    @Test
+    public void FMFShieldingTest() throws Exception {
+        List<Packet> packetList;
+        packetList = new ArrayList<>();
+        packetList.add(new Packet(new FlowId("1"), 1000, 0.0));
+        packetList.add(new Packet(new FlowId("1"), 501, 0.05));
+        packetList.add(new Packet(new FlowId("2"), 500, 0.07));
+        packetList.add(new Packet(new FlowId("2"), 1, 0.08));
+        packetList.add(new Packet(new FlowId("1"), 0, 0.101));
+        
+        Double T = 0.1;
+        Integer threshold = 1500;
+        Integer linkCapacity = 100000;
+        Integer numOfStages = 4;
+        Integer sizeOfStage = 1;
+
+        FMFDetector fmfDetector = new FMFDetector("test_FMFDetector",
+                numOfStages,
+                sizeOfStage,
+                linkCapacity,
+                T,
+                threshold);
+        fmfDetector.considerPacketCrossPeriods();
+
+        int i = 0;
+        // period 0
+        fmfDetector.processPacket(packetList.get(i++));
+        System.out.println(fmfDetector.getBlackList());
+        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        fmfDetector.processPacket(packetList.get(i++));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("1")));
+        fmfDetector.processPacket(packetList.get(i++));
+        assertFalse(fmfDetector.getBlackList().containsKey(new FlowId("2")));
+        fmfDetector.processPacket(packetList.get(i++));
+        assertTrue(fmfDetector.getBlackList().containsKey(new FlowId("2")));
     }
 
     @Test
