@@ -50,5 +50,17 @@ class Bucket {
 	boolean check() {
 		return value > threshold;
 	}
+	
+	/**
+	 * check the bucket before actually add the value into the bucket
+	 * @param packetSize
+	 * @return
+	 */
+	boolean checkWithShielding(int packetSize) {
+	    return value + packetSize > threshold;
+	}
 
+    void copyFrom(Bucket bucket) {
+        value = bucket.value;
+    }
 }

@@ -54,26 +54,16 @@ public class AMFDetector extends MultistageFilter {
             return flowsToFM;
         }
 
-        Boolean shouldBlackList = true;
-        
-        for (int i = 0; i < numOfStages; i++) {
-            // get the buckets of the flow
-            Integer index = hashFuncs.get(i).getHashCode(packet.flowId);
-
-            // process packet into its buckets
-            Bucket bucket = stages.get(i).get(index);
-            bucket.processPacket(packet);
-            if (!bucket.check()) {
-                shouldBlackList = false;
-            }
-        }
-        
-        if (shouldBlackList) {
+        // Sheilding: don't add packet if the flow is sent to blacklist
+        if (checkFlowWithShielding(packet)) {
+            // blacklist the flow
             Double blackListTime = packet.time
                     + (double) packet.size / (double) linkCapacity;
             flowsToFM.put(packet.flowId, blackListTime);
+        } else {
+            processPacketForAllStages(packet);
         }
-
+        
         return flowsToFM;
     }
 
@@ -90,6 +80,55 @@ public class AMFDetector extends MultistageFilter {
         }
     }
 
+    private void processPacketForAllStages(Packet packet) {
+        // get bucket indexes in each stage
+        int[] bucketIndexes = new int[numOfStages];
+        for (int i = 0; i < numOfStages; i++) {
+            bucketIndexes[i] = hashFuncs.get(i).getHashCode(packet.flowId);
+        }
+        
+        // update the bucket value to the packet start time
+        for (int i = 0; i < numOfStages; i++) {
+            Bucket bucket = stages.get(i).get(bucketIndexes[i]);
+            bucket.processPacket(new Packet(packet.flowId, 0, packet.time));
+        }
+        
+        // find the min-value bucket
+        Bucket minBucket = stages.get(0).get(bucketIndexes[0]);
+        int minStageIndex = 0;
+        for (int i = 1; i < numOfStages; i++) {
+            Bucket curBucket = stages.get(i).get(bucketIndexes[i]);
+            if (curBucket.getValue() < minBucket.getValue()) {
+                minBucket = curBucket;
+                minStageIndex = i;
+            }
+        }
+        
+        // process the packet in the min-value bucket
+        minBucket.processPacket(packet);
+        
+        // if the bucket value less than min-value bucket value,
+        // just set the same end time and value to the bucket
+        // if not just set the same end time, but keep the value the same
+        for (int i = 0; i < numOfStages; i++) {
+            if (i == minStageIndex) {
+                continue;
+            }
+
+            // process packet into its buckets
+            Bucket bucket = stages.get(i).get(bucketIndexes[i]);
+            
+             // process other bucket with empty packet to update time 
+            // to the same as the min-value bucket
+            bucket.processPacket(new Packet(
+                    packet.flowId, 0, 
+                    ((LeakyBucket) minBucket).getCurrenTime()));
+            if (bucket.getValue() < minBucket.getValue()) {
+                bucket.copyFrom(minBucket);
+            }
+        }
+    }
+    
     public Integer getDrainRate() {
         return drainRate;
     }
@@ -104,6 +143,5 @@ public class AMFDetector extends MultistageFilter {
         logger.logConfigMsg("Leaky bucket drain rate: " + getDrainRate()
                 + " Byte / sec \n");
         logger.logConfigMsg("Bucket threshold: " + getThreshold() + " Byte \n");
-    }
-
+    }    
 }

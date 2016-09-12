@@ -43,5 +43,16 @@ class LeakyBucket extends Bucket {
 		value -= (int) Math.round(processTime * drainRate);
 		currentTime += processTime;
 	}
+	
+	public double getCurrenTime() {
+	    return currentTime;
+	}
+	
+	@Override
+	void copyFrom(Bucket bucket) {
+	    LeakyBucket lb = (LeakyBucket) bucket;
+	    value = lb.value;
+	    currentTime = lb.currentTime;
+	}
 
 }
