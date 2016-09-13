@@ -86,6 +86,10 @@ public class Main_MaxPacketLossEvaluation_configurable {
         if (config.has("AMF_config")) {
             AMF_config = config.getJSONObject("AMF_config");
         }
+        JSONObject EARDet_EFD_config = new JSONObject();
+        if (config.has("EARDet_EFD_config")) {
+            EARDet_EFD_config = config.getJSONObject("EARDet_EFD_config");
+        }
         
         // DEBUG
         if (DEBUG) {
@@ -225,6 +229,15 @@ public class Main_MaxPacketLossEvaluation_configurable {
             ratioOfFlowMemoryToAMF = AMF_config.getDouble("flow_memory_counter_ratio");
             useFlowMemoryAMF = AMF_config.getBoolean("flow_memory");
         }
+        
+        // for EARDet + EFD hybrid
+        double ratioOfEARDetMemory = 0.5;
+        boolean split_by_relative_value_2 = false;
+        if (EARDet_EFD_config.length() > 0) {
+            ratioOfEARDetMemory = EARDet_EFD_config.getDouble("EARDet_counter_ratio");
+            split_by_relative_value_2 = EARDet_EFD_config.getBoolean("EFD_split_by_relative_value");
+        }
+        
 
         // setup base detector
         LeakyBucketDetector baseDetector = new LeakyBucketDetector(
@@ -284,6 +297,27 @@ public class Main_MaxPacketLossEvaluation_configurable {
             amfDetector.setFlowMemoryFactory(fm_factory);
         }
         
+        // setup EARDet + EFD
+        EARDet eardet_2 = new EARDet("eardet",
+                alpha,
+                beta_l,
+                gamma_h,
+                gamma_l,
+                maxIncubationTime,
+                outboundLinkCapacity);
+        EgregiousFlowDetector egDetector_2 = new EgregiousFlowDetector(
+                "egregious-detector",
+                eg_gamma,
+                eg_burst,
+                period,
+                inboundLinkCapacity,
+                tmpNumOfCounters);
+        egDetector_2.setEstimatedNumOfFlows(
+                numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+        if (split_by_relative_value_2) {
+            egDetector_2.splitBucketByRelativeValue();
+        }
+        
         // setup routers
         AdvancedRouter router1 = new AdvancedRouter("router_eardet",
                 inboundLinkCapacity,
@@ -304,6 +338,12 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 inboundLinkCapacity,
                 outboundLinkCapacity);
         router4.setPreQdDetector(amfDetector);
+        
+        AdvancedRouter router5 = new AdvancedRouter("router_eardet_efd",
+                inboundLinkCapacity,
+                outboundLinkCapacity);
+        router5.setPreQdDetector(egDetector_2, 1. - ratioOfEARDetMemory);
+        router5.setPostQdDetector(eardet_2, ratioOfEARDetMemory);
 
         // setup flow generator
         RealTrafficFlowGenerator realTrafficFlowGenerator = new RealTrafficFlowGenerator(
@@ -404,6 +444,10 @@ public class Main_MaxPacketLossEvaluation_configurable {
         if (!config.has("run_AMF") || config.getBoolean("run_AMF")) {
             evaluator.addRouter(router4);
             System.out.println("Added AMF router.");
+        }
+        if (!config.has("run_EARDet_EFD") || config.getBoolean("run_EARDet_EFD")) {
+            evaluator.addRouter(router5);
+            System.out.println("Added EARDet-EFD hybrid router.");
         }
         evaluator.setStartRound(startRound);
         evaluator.setNumOfRepeatRounds(numOfRepeatRounds);

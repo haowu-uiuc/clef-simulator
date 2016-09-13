@@ -2,9 +2,11 @@ package largeflow.emulator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.TreeMap;
 
@@ -45,6 +47,9 @@ public class AdvancedRouter implements Router {
     private Map<FlowId, Double> blackList = null;
     private Map<FlowId, Integer> blackList_DroppedTraffic;
 
+    // the ratio of # of detector counters to total counters
+    private Map<Detector, Double> detectorToCounterRatio;
+    
     /**
      * one inbound link add one outbound link
      * 
@@ -60,6 +65,7 @@ public class AdvancedRouter implements Router {
         inboundCapacities = new ArrayList<>();
         outboundCapacities = new ArrayList<>();
         postQdDetectors = new ArrayList<>(1);
+        detectorToCounterRatio = new HashMap<>(2);
 
         inboundCapacities.add(inboundCapacity);
         outboundCapacities.add(outboundCapacity);
@@ -98,6 +104,7 @@ public class AdvancedRouter implements Router {
         this.inboundCapacities = new ArrayList<>(inboundCapacities);
         this.outboundCapacities = new ArrayList<>(outboundCapacities);
         postQdDetectors = new ArrayList<>(outboundCapacities.size());
+        detectorToCounterRatio = new HashMap<>();
 
         this.routingTable = routingTable;
 
@@ -165,12 +172,18 @@ public class AdvancedRouter implements Router {
 
     public void setPreQdDetector(Detector detector) {
         preQdDetector = detector;
+        detectorToCounterRatio.put(detector, 1.0);
+    }
+    
+    public void setPreQdDetector(Detector detector, double counterRatio) {
+        preQdDetector = detector;
+        detectorToCounterRatio.put(detector, counterRatio);
     }
 
     public Detector getPreQdDtector() {
         return preQdDetector;
     }
-
+    
     /**
      * by default, we set detector to oubound link out_1.
      * 
@@ -178,11 +191,24 @@ public class AdvancedRouter implements Router {
      */
     public void setPostQdDetector(Detector detector) {
         postQdDetectors.set(0, detector);
+        detectorToCounterRatio.put(detector, 1.0);
+    }
+    
+    public void setPostQdDetector(Detector detector, double counterRatio) {
+        postQdDetectors.set(0, detector);
+        detectorToCounterRatio.put(detector, counterRatio);
     }
 
     public void setPostQdDetector(int outboundLinkIndex,
             Detector detector) {
         postQdDetectors.set(outboundLinkIndex, detector);
+        detectorToCounterRatio.put(detector, 1.0);
+    }
+    
+    public void setPostQdDetector(int outboundLinkIndex,
+            Detector detector, double counterRatio) {
+        postQdDetectors.set(outboundLinkIndex, detector);
+        detectorToCounterRatio.put(detector, counterRatio);
     }
 
     public Detector getPostQdDetector(Integer outboundIndex) {
@@ -444,14 +470,10 @@ public class AdvancedRouter implements Router {
 
     @Override
     public void setNumOfDetectorCounters(Integer numOfCounters) throws Exception {
-        if (preQdDetector != null) {
-            preQdDetector.setNumOfCounters(numOfCounters);
-        }
-        
-        for (int i = 0; i < postQdDetectors.size(); i++) {
-            if (postQdDetectors.get(i) != null) {
-                postQdDetectors.get(i).setNumOfCounters(numOfCounters);
-            }
+        for (Entry<Detector, Double> entry : detectorToCounterRatio.entrySet()) {
+            Detector detector = entry.getKey();
+            double ratio = entry.getValue();
+            detector.setNumOfCounters((int) Math.round(numOfCounters * ratio));
         }
     }
 

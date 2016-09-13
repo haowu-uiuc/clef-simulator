@@ -50,7 +50,7 @@ export JOBID=`echo $PBS_JOBID | cut -d"." -f1`
 module load java/1.8
 
 # Run JAVA code
-java -Xms1024m -Xmx2048m -d64 -jar {jar_name}""".format(
+java -Xms2048m -Xmx4096m -d64 -jar {jar_name}""".format(
     date=time.strftime("%x"),
     jar_name=jarName,
     scratch_exp_dir=scratchExpDir)
@@ -77,7 +77,8 @@ shell_file.write(cmd)
 
 for i in range(startRound, numOfRounds + startRound):
     for rate_file_name in rate_file_names:
-        rate_file_prefix = rate_file_name.split('/')[1].split('.')[0]
+    	tmp_strs = rate_file_name.split('/')
+        rate_file_prefix = tmp_strs[len(tmp_strs)-1].split('.')[0]
         pbs_file_name = "round-" + str(i) + "-" + \
             rate_file_prefix + ".pbs"
 
