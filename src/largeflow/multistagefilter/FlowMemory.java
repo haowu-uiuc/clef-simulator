@@ -31,6 +31,9 @@ public class FlowMemory {
     private int bucket_drainRate; // drain rate of bucket
     private int linkCapacity;
 
+    // least-bucket-value eviction
+    private FlowMemoryEvictionType  evictionType = FlowMemoryEvictionType.RANDOM_EVICTION;
+    
     // state
     private List<LeakyBucket> buckets;
     private Queue<Integer> idleBucketIdxs;
@@ -65,6 +68,13 @@ public class FlowMemory {
         }
     }
 
+    public void setEvictionType (FlowMemoryEvictionType type) {
+        if (DEBUG) {
+            System.out.println("Eviction type set as " + type.toString());
+        }
+        evictionType = type;
+    }
+    
     public void setSize(int size) {
         this.size = size;
         if (noSizeLimit) {
@@ -173,11 +183,29 @@ public class FlowMemory {
         if (mapBucketIdxToFlow.size() < size) {
             return null;
         }
-        // randomly pick up a bucket and
-        // return the flow associated to the bucket
-        int idx = (int) ((Math.random() - 0.000001) * size);
-        FlowId flowId = mapBucketIdxToFlow.get(idx);
-        return flowId;
+        
+        if (evictionType == FlowMemoryEvictionType.RANDOM_EVICTION) {
+            // randomly pick up a bucket and
+            // return the flow associated to the bucket
+            int idx = (int) ((Math.random() - 0.000001) * size);
+            FlowId flowId = mapBucketIdxToFlow.get(idx);
+            return flowId;
+        } else if (evictionType == FlowMemoryEvictionType.LEAST_BUCKET_VALUE_EVICTION) {
+            // find min-value bucket to remove
+            int minValue = buckets.get(0).getValue();
+            int minIndex = 0;
+            for (int i = 1; i < buckets.size(); i++) {
+                int value = buckets.get(i).getValue();
+                if (minValue > value) {
+                    minValue = value;
+                    minIndex = i;
+                }
+            }
+            FlowId flowId = mapBucketIdxToFlow.get(minIndex);
+            return flowId;
+        }
+        
+        return null;
     }
 
     public boolean flowIsInFlowMemory(FlowId flowId) {

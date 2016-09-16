@@ -8,6 +8,7 @@ public class FlowMemoryFactory {
     private int drainRate;
     private int linkCapacity;
     private boolean noSizeLimit = false;
+    private FlowMemoryEvictionType evictionType = FlowMemoryEvictionType.RANDOM_EVICTION;
     
     public FlowMemoryFactory(int threshold, int drainRate, int linkCapacity) {
         this.threshold = threshold;
@@ -27,8 +28,13 @@ public class FlowMemoryFactory {
         DEBUG = false;
     }
     
+    public void setEvictionType(FlowMemoryEvictionType type) {
+        evictionType = type;
+    }
+    
     public FlowMemory createFlowMemory(int size) {
         FlowMemory fm = new FlowMemory(size, threshold, drainRate, linkCapacity);
+        fm.setEvictionType(evictionType);
         if (noSizeLimit) {
             fm.setNoSizeLimit();
         }

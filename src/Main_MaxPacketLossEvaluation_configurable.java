@@ -15,6 +15,7 @@ import largeflow.flowgenerator.RealAttackFlowGenerator;
 import largeflow.flowgenerator.RealTrafficFlowGenerator;
 import largeflow.multistagefilter.AMFDetector;
 import largeflow.multistagefilter.FMFDetector;
+import largeflow.multistagefilter.FlowMemoryEvictionType;
 import largeflow.multistagefilter.FlowMemoryFactory;
 import org.json.JSONObject;
 
@@ -207,12 +208,17 @@ public class Main_MaxPacketLossEvaluation_configurable {
         // ratio of # of counters used in flow memory to the total memory
         double ratioOfFlowMemoryToFMF = 0.5;
         boolean useFlowMemoryFMF = true;
+        boolean leastValueEvictionFMF = false;
 
         if (FMF_config.length() > 0) {
             T_fmf = FMF_config.getDouble("period");
             numOfStages_fmf = FMF_config.getInt("num_stages");
             ratioOfFlowMemoryToFMF = FMF_config.getDouble("flow_memory_counter_ratio");
             useFlowMemoryFMF = FMF_config.getBoolean("flow_memory");
+            if (FMF_config.has("least_value_eviction")
+                    && FMF_config.getBoolean("least_value_eviction")) {
+                leastValueEvictionFMF = true;
+            }
         }
         
         // for AMF
@@ -223,11 +229,16 @@ public class Main_MaxPacketLossEvaluation_configurable {
         // ratio of # of counters used in flow memory to the total memory
         double ratioOfFlowMemoryToAMF = 0.5;
         boolean useFlowMemoryAMF = true;
+        boolean leastValueEvictionAMF = false;
 
         if (AMF_config.length() > 0) {
             numOfStages_amf = AMF_config.getInt("num_stages");
             ratioOfFlowMemoryToAMF = AMF_config.getDouble("flow_memory_counter_ratio");
             useFlowMemoryAMF = AMF_config.getBoolean("flow_memory");
+            if (AMF_config.has("least_value_eviction")
+                    && AMF_config.getBoolean("least_value_eviction")) {
+                leastValueEvictionAMF = true;
+            }
         }
         
         // for EARDet + EFD hybrid
@@ -271,7 +282,7 @@ public class Main_MaxPacketLossEvaluation_configurable {
         // egDetector.enableDebug();
 
         // setup FMF
-        FlowMemoryFactory fm_factory = new FlowMemoryFactory(burstTolerance,
+        FlowMemoryFactory fm_factory_fmf = new FlowMemoryFactory(burstTolerance,
                 largeFlowRate,
                 outboundLinkCapacity);
         FMFDetector fmfDetector = new FMFDetector("fmf",
@@ -281,11 +292,18 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 T_fmf,
                 threshold_fmf);
         fmfDetector.setRatioOfFlowMemory(ratioOfFlowMemoryToFMF);
+        if (leastValueEvictionFMF) {
+            fm_factory_fmf.setEvictionType(
+                    FlowMemoryEvictionType.LEAST_BUCKET_VALUE_EVICTION);
+        }
         if (useFlowMemoryFMF) {
-            fmfDetector.setFlowMemoryFactory(fm_factory);
+            fmfDetector.setFlowMemoryFactory(fm_factory_fmf);
         }
 
         // setup AMF
+        FlowMemoryFactory fm_factory_amf = new FlowMemoryFactory(burstTolerance,
+                largeFlowRate,
+                outboundLinkCapacity);
         AMFDetector amfDetector = new AMFDetector("amf",
                 numOfStages_amf,
                 sizeOfStage_amf,
@@ -293,8 +311,12 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 drainRate_amf,
                 threshold_amf);
         amfDetector.setRatioOfFlowMemory(ratioOfFlowMemoryToAMF);
+        if (leastValueEvictionAMF) {
+            fm_factory_amf.setEvictionType(
+                    FlowMemoryEvictionType.LEAST_BUCKET_VALUE_EVICTION);
+        }
         if (useFlowMemoryAMF) {
-            amfDetector.setFlowMemoryFactory(fm_factory);
+            amfDetector.setFlowMemoryFactory(fm_factory_amf);
         }
         
         // setup EARDet + EFD
