@@ -37,11 +37,13 @@
         "num_stages": 4,
         "flow_memory": true,
         "flow_memory_counter_ratio": 0.5,
+        "least_value_eviction": true,
     },
     "AMF_config": {
         "num_stages": 4,
         "flow_memory": true,
         "flow_memory_counter_ratio": 0.5,
+        "least_value_eviction": true,
     },
     "EARDet_EFD_config": {
         "EFD_split_by_relative_value": false,

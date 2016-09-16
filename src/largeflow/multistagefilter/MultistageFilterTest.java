@@ -352,6 +352,44 @@ public class MultistageFilterTest {
 
         logger.logDetectorConfig(amfDetector, false);
     }
+    
+    @Test
+    public void AMFDetectorWithFlowMemoryLeastBucketEvictionTest() throws Exception {
+
+        Integer numOfStages = 4;
+        Integer sizeOfStage = 25;
+        Integer threshold = 1518 * 4;
+        Integer drainRate = largeFlowRate - resolution;
+        FlowMemoryFactory fm_factory = new FlowMemoryFactory(threshold,
+                drainRate,
+                linkCapacity);
+        fm_factory.setEvictionType(FlowMemoryEvictionType.LEAST_BUCKET_VALUE_EVICTION);
+
+        AMFDetector amfDetector = new AMFDetector("test_AMFDetector",
+                numOfStages,
+                sizeOfStage,
+                linkCapacity,
+                drainRate,
+                threshold);
+//        fm_factory.enableDebug();
+        amfDetector.setFlowMemoryFactory(fm_factory);
+        amfDetector.setRatioOfFlowMemory(0.5);
+//        amfDetector.enableDebug();
+
+        LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
+                "test_LeakyBucketDetector", threshold, drainRate, linkCapacity);
+
+        testMultistageFilter(amfDetector, inputTestTrafficFile, 0, 0);
+        testDetectorWithLeakyBucket(amfDetector, leakyBucketDetector);
+
+        amfDetector.reset();
+        testMultistageFilter(amfDetector,
+                inputWithSmallFlowsTestTrafficFile,
+                null,
+                0);
+
+        logger.logDetectorConfig(amfDetector, false);
+    }
 
     private void testMultistageFilter(MultistageFilter detector,
             File inputTrafficFile,
