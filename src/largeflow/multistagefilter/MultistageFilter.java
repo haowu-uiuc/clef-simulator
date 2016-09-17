@@ -115,6 +115,10 @@ abstract class MultistageFilter extends Detector {
         logger.logConfigMsg("Num of Counter: " + getNumOfCounters() + "\n");
         logger.logConfigMsg(
                 "Link capacity: " + getLinkCapacity() + " Byte/s \n");
+        if (flowMemory != null) {
+            flowMemory.logConfig(logger);
+            logger.logConfigMsg("Flow Memory Memory Ratio: " + ratioOfFlowMemory + "\n");
+        }
     }
 
     @Override

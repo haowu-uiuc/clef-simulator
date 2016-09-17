@@ -441,6 +441,11 @@ public class AdvancedRouter implements Router {
                     + outboundCapacities.get(i) + " Byte/sec \n");
         }
         
+        logger.logConfigMsg("-----Memory Allocation-----\n");
+        for (Entry<Detector, Double> entry : detectorToCounterRatio.entrySet()) {
+            logger.logConfigMsg(entry.getKey().detectorName + " : " + entry.getValue() + "\n");
+        }
+        
         logger.logConfigMsg("-----Pre-QD Detector-----\n");
         if (preQdDetector != null) {
            preQdDetector.logConfig(logger);

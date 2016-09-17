@@ -1,5 +1,6 @@
 package largeflow.multistagefilter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.emulator.Logger;
 
 /**
  * flow memory using leaky bucket
@@ -243,5 +245,10 @@ public class FlowMemory {
     
     public void disableDebug() {
         DEBUG = false;
+    }
+    
+    public void logConfig(Logger logger) throws IOException {
+        logger.logConfigMsg("Flow Memory Eviction: " + evictionType + "\n");
+        logger.logConfigMsg("Flow Memory Size: " + buckets.size() + "\n");
     }
 }
