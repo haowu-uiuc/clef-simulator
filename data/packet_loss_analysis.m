@@ -2,26 +2,31 @@ clear all, close all, clc;
 
 loadDataFromFile = 0;
 % expName = 'packet_loss_burst_20160421_2';
-expName = 'packet_loss_burst_20160801';
+% expName = 'packet_loss_burst_20160801';
 % expName = 'packet_loss_config_test_20160906_2';
 % expName = 'packet_loss_hybrid_test_20160911';
 % expName = 'packet_loss_hybrid_long_test_20160911'
+% expName = 'packet_loss_hybrid_least_value_eviction_20160916';
+% expName = 'packet_loss_hybrid_small_packet_20160917';
+expName = 'packet_loss_hybrid_long_test_burst_20160911';
 % expName = 'packet_loss_flat_20160801_amf_test_fixed_limited_size'
-% routerNameList = {'router_eardet', 'router_eg', 'router_amf'};
 % expName = 'test_packet_loss_exp';
-routerNameList = {'router_eardet', 'router_eg', 'router_amf'};
-% routerNameList = {'router_eardet', 'router_eg', 'router_fmf', 'router_amf', 'router_eardet_efd'};
+routerNameList = {'router_eardet', 'router_eg', 'router_fmf', 'router_amf', 'router_eardet_efd'};
+% routerNameList = {'router_fmf_lbve', 'router_amf_lbve'};
+% routerNameList = {'router_eardet', 'router_eg', 'router_fmf', 'router_amf', 'router_eardet_efd', 'router_fmf_lbve', 'router_amf_lbve'};
 % routerNameList = {'router_eardet', 'router_eg', 'router_amf'};
 % routerNameList = {'router_fmf', 'router_amf'};
 
 routerLabelList = {'EARDet', 'EFD', 'FMF w/ FM', 'AMF w/ FM', 'EARDet w/ EFD' };
-routerLabelList = {'EARDet', 'EFD', 'AMF w/ FM'};
+% routerLabelList = {'EARDet', 'EFD', 'AMF w/ FM'};
+% routerLabelList = {'FMF w/ FM (LBVE)', 'AMF w/ FM (LBVE)'};
+% routerLabelList = {'EARDet', 'EFD', 'FMF w/ FM', 'AMF w/ FM', 'EARDet w/ EFD', 'FMF w/ FM (LBVE)', 'AMF w/ FM (LBVE)'};
 
-drawRatio = true;
+drawRatio = false;
 minRate = 0;
 maxRate = 50000000;
 start_round = 0;
-draw_heat_map = false;  % 1 for ture, 0 for false
+draw_heat_map = true;  % 1 for ture, 0 for false
 
 total_damageMatrix_list = {};
 FNMatrix = {};
@@ -234,7 +239,7 @@ end
 
 % draw damage comparison figure at a # of counter
 fig_num_counters = [60, 100, 160, 200];
-colors = {'b-*', 'r-x', 'm-v', 'k-^', 'g-d'};
+colors = {'b-*', 'r-x', 'm-v', 'k-^', 'g-d', 'c-o', 'y-+'};
 for j = 1:length(fig_num_counters)
     fig_num_counter = fig_num_counters(j);
     counterIndex = counterToIndexMap(fig_num_counter);
@@ -247,7 +252,7 @@ for j = 1:length(fig_num_counters)
     title(['Total Damage when counter number is ', num2str(fig_num_counter)]);
     xlabel('Large Flow Rate (Bytes / second)')
     ylabel('Total Damage');
-%     ylim([0, 300000000]);
+    ylim([0, 500000000]);
     legend(routerLabelList);
     saveas(fig, [fig_dir, 'total_damage_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
 end
