@@ -3,7 +3,7 @@ import time
 
 startRound = 0
 numOfRounds = 5
-expName = "packet_loss_config_test_20160830"
+expName = "packet_loss_fmd_20160919"
 jarName = "Main_MaxPacketLossEvaluation_configurable.jar"
 scratchExpDir = "/home/haowu11/scratch/large-flow"
 counter_file_name = "counter.txt"
@@ -11,7 +11,7 @@ config_file_name = expName + ".json"
 rate_file_names = ["rate-0.txt", "rate-1.txt", "rate-2.txt"]
 
 rate_dir = None
-rate_dir = 'rate_1_in_1'
+# rate_dir = 'rate_1_in_1'
 if rate_dir is not None:
     rate_file_names = []
     for file in os.listdir('atk_rate/' + rate_dir):
@@ -77,7 +77,7 @@ shell_file.write(cmd)
 
 for i in range(startRound, numOfRounds + startRound):
     for rate_file_name in rate_file_names:
-    	tmp_strs = rate_file_name.split('/')
+        tmp_strs = rate_file_name.split('/')
         rate_file_prefix = tmp_strs[len(tmp_strs)-1].split('.')[0]
         pbs_file_name = "round-" + str(i) + "-" + \
             rate_file_prefix + ".pbs"

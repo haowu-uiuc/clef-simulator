@@ -390,8 +390,40 @@ public class MultistageFilterTest {
 
         logger.logDetectorConfig(amfDetector, false);
     }
+    
+    @Test
+    public void FlowMemoryDetectorTest() throws Exception {
 
-    private void testMultistageFilter(MultistageFilter detector,
+        Integer numOfCounters = 100;
+        Integer threshold = 1518 * 4;
+        Integer drainRate = largeFlowRate - resolution;
+        FlowMemoryFactory fm_factory = new FlowMemoryFactory(threshold,
+                drainRate,
+                linkCapacity);
+//        fm_factory.setEvictionType(FlowMemoryEvictionType.LEAST_BUCKET_VALUE_EVICTION);
+
+        FlowMemoryDetector detector = new FlowMemoryDetector("test_FMDetector",
+                numOfCounters,
+                linkCapacity,
+                fm_factory);
+
+        LeakyBucketDetector leakyBucketDetector = new LeakyBucketDetector(
+                "test_LeakyBucketDetector", threshold, drainRate, linkCapacity);
+
+        
+        testMultistageFilter(detector, inputTestTrafficFile, 0, 0);
+        testDetectorWithLeakyBucket(detector, leakyBucketDetector);
+
+        detector.reset();
+        testMultistageFilter(detector,
+                inputWithSmallFlowsTestTrafficFile,
+                null,
+                0);
+
+        logger.logDetectorConfig(detector, false);
+    }
+
+    private void testMultistageFilter(Detector detector,
             File inputTrafficFile,
             Integer goldenFN,
             Integer goldenFP) throws Exception {
@@ -416,10 +448,10 @@ public class MultistageFilterTest {
         System.out.println("=======testCatchingLargeFlows=======");
         System.out.println("Detector: " + detector.name());
         System.out.println("Traffic File: " + inputTrafficFile.getName());
-        System.out.println("link capacity = " + detector.getLinkCapacity());
-        System.out.println("# of stages = " + detector.getNumOfStages());
-        System.out.println("size of stage = " + detector.getSizeOfStage());
-        System.out.println("num counters = " + detector.getNumOfCounters());
+//        System.out.println("link capacity = " + detector.getLinkCapacity());
+//        System.out.println("# of stages = " + detector.getNumOfStages());
+//        System.out.println("size of stage = " + detector.getSizeOfStage());
+//        System.out.println("num counters = " + detector.getNumOfCounters());
         System.out.println("Num of large flow caught: " + numOfLargeFlowCaught);
         System.out.println("Num of FP: " + numOfFP);
         System.out.println("Num of FN: " + (numOfLargeFlows - numOfLargeFlowCaught));

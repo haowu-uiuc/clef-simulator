@@ -1,9 +1,9 @@
 {
-    "exp_name": "test_packet_loss_exp",
+    "exp_name": "packet_loss_fmd_20160919",
     "run_EARDet": false,
     "run_EFD": false,
-    "run_FMF": false,
-    "run_AMF": false,
+    "run_FMF": true,
+    "run_AMF": true,
     "run_EARDet_EFD": false,
     "run_FMD": true,
     "debug_mode": false,
