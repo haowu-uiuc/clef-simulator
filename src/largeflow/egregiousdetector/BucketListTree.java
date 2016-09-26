@@ -101,17 +101,14 @@ class BucketListTree {
 	}
 
 	/**
-	 * check the buckets in the bottom and return the flow IDs if there are
+	 * check the buckets in the bottom (current level) 
+	 * and return the flow IDs if there are
 	 * large flows in a time interval.
 	 * 
 	 * @return
 	 */
 	public List<FlowId> checkBottomBuckets(Double timeInterval) {
 		List<FlowId> largeFlowList = new ArrayList<>();
-
-		if (currentLevel < maxDepth) {
-			return largeFlowList;
-		}
 
 		for (BucketList bucketList : bottomBucketLists) {
 			// check whether the bucket value exceeds the reservation, if so,
