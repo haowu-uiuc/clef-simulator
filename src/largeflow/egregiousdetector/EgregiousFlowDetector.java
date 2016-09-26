@@ -65,7 +65,7 @@ public class EgregiousFlowDetector extends Detector {
 		// we use a simple setting: every flow has the same reservation = gamma.
 		resDb = new UniReservationDatabase(gamma);
 
-		optimizeConfig_v2(numOfCounters);
+		optimizeConfig(numOfCounters);
 
 		// init states
 		timestampOfPeriodBegin = 0.0;
@@ -148,17 +148,19 @@ public class EgregiousFlowDetector extends Detector {
 		// Because if the packets are sparse in time at some time,
 		// we still split the tree without adding any packet.
 		while (packet.time >= timestampOfPeriodEnd) {
-			// the packet is ahead of this period
+		 // we check buckets in current level
+            // if there is a bucket occupied by one flow 
+            // and it violates the flow spec, then it is large flow
+            // and put large flows into blacklist
+            List<FlowId> largeFlows = tree.checkBottomBuckets(period);
+
+            // add these large flows into blacklist
+            for (FlowId flowId : largeFlows) {
+                blackList.put(flowId, timestampOfPeriodEnd);
+            }
+
 			if (!tree.splitBuckets()) {
 				// if we cannot split bucket => tree reached its max depth
-				// we check buckets and put large flows into blacklist
-				List<FlowId> largeFlows = tree.checkBottomBuckets(period);
-
-				// add these large flows into blacklist
-				for (FlowId flowId : largeFlows) {
-					blackList.put(flowId, timestampOfPeriodEnd);
-				}
-
 				tree.reset();
 			}
 
@@ -175,7 +177,7 @@ public class EgregiousFlowDetector extends Detector {
 	public void setNumOfCounters(Integer numOfCounters) throws Exception {
 		super.reset();
 		this.numOfCounters = numOfCounters;
-		optimizeConfig_v2(numOfCounters);
+		optimizeConfig(numOfCounters);
 
 		if (numOfBranches < 1) {
 			throw new Exception("Number of branches is below 1. Need more counters");
@@ -235,55 +237,33 @@ public class EgregiousFlowDetector extends Detector {
 	}
 
 	private void optimizeConfig(Integer numOfCounters) throws Exception {
-		int optf = -1;
-		int optd = -1;
-		int optk = -1;
-		int N = estimateNumOfFlows();
-		
-		// only use optf = 2 //
-		optf = 2;
-		optd = calculateMaxDepth(N, optf);
-		optk = calculateNumOfBranches(numOfCounters, optf, optd);
-		///////////////////////
-		
-		// if number of counters is not enough
-		if (optk <= 0) {
-		    optf = 2;
-		    optd = numOfCounters / optf;
-		    optk = 1;
-		}
-		
-		fanout = optf;
-		maxDepth = optd;
-		numOfBranches = optk;
-		if (debug) {
-		    System.out.println("N = " + N + ", f = " + optf + ", d = " + optd + ", k = " + optk);
-	    }
-	}
-
-	private void optimizeConfig_v2(Integer numOfCounters) throws Exception {
-	    System.out.println("This is EFD optimization V2");
         int optf = -1;
         int optd = -1;
         int optk = -1;
         int N = estimateNumOfFlows();
         double maxOptTarget = 0.0;
         for (int f = 2; f <= numOfCounters; f++) {
-            int d = calculateMaxDepth(N, f);
-            int k = calculateNumOfBranches(numOfCounters, f, d);
+            int k = calculateNumOfBranches(numOfCounters, f);
+            int d = calculateMaxDepth(N, f, k);
 
-            if (k <= 0 || k > f) {
+            if (k <= 0 || k > numOfCounters) {
                 continue;
             }
 
             double optTarget = (double) k / (double) d;
-//             System.out.println("optTarget = " + optTarget + ", f = " + f +
-//             ", d = " + d + ", k = " + k);
+            if (debug) {
+                System.out.println("optTarget = " + optTarget + ", f = " + f +
+                    ", d = " + d + ", k = " + k);
+            }
             if (optTarget > maxOptTarget) {
                 optf = f;
                 optd = d;
                 optk = k;
                 maxOptTarget = optTarget;
+            } else if (optTarget == maxOptTarget && f > optf) {
+                optf = f;
+                optd = d;
+                optk = k;
             }
         }
         
@@ -303,18 +283,15 @@ public class EgregiousFlowDetector extends Detector {
     }
 	
     private Integer calculateMaxDepth(Integer numOfFlows,
-            Integer fanout) {
-        return (int) (Math.log((double) numOfFlows) / Math.log((double) fanout)) + 1;
+            Integer fanout,
+            Integer numOfBranches) {
+        return (int) (Math.log((double) numOfFlows / (double) numOfBranches)
+                / Math.log((double) fanout)) + 2;
     }
 
     private Integer calculateNumOfBranches(Integer numOfCounters,
-            Integer fanout,
-            Integer maxDepth) {
-        if (maxDepth == 1) {
-            return 0;
-        }
-        
-        return (numOfCounters - fanout) / (fanout * (maxDepth - 1));
+            Integer fanout) {
+        return numOfCounters / fanout;
     }
 	
 	public void enableDebug() {

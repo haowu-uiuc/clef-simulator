@@ -64,7 +64,7 @@ public class EgregiousFlowDetectorTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        // inputTestTrafficFile.delete();
+         inputTestTrafficFile.delete();
     }
 
     @Before
@@ -156,6 +156,29 @@ public class EgregiousFlowDetectorTest {
         System.out.println(
                 "LeakBucket BlackList: " + leakyBucketDetector.getBlackList());
 
+    }
+    
+    @Test
+    public void OptConfigTest() throws Exception {
+        int linkCapacity = 500000000;
+        String detectorName = "test_egregious_detector";
+        int gamma = 50000;
+        int burst = 1000;
+        double period = 0.1; // minPeriod = 6072 / 250000 = 0.025
+        int numOfCounters = 200;
+
+        detector = new EgregiousFlowDetector(detectorName,
+                gamma,
+                burst,
+                period,
+                linkCapacity,
+                numOfCounters);
+        detector.enableDebug();
+        detector.setEstimatedNumOfFlows(linkCapacity / gamma);
+        detector.splitBucketByRelativeValue();
+        for (int n = 20; n <= 200; n += 20) {
+            detector.setNumOfCounters(n);
+        }
     }
 
 }
