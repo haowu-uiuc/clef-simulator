@@ -34,7 +34,7 @@ public class EgregiousFlowDetectorTest {
     // number of large flows to generate
     static private Integer numOfLargeFlows = 20;
     // static private Integer numOfLargeFlows = 1;
-    static private Integer largeFlowRate = 300000; // rate of large flows
+    static private Integer largeFlowRate = 350000; // rate of large flows
     static private Integer smallFlowRate = 100000; // rate of small flows
     static private File inputTestTrafficFile;
     private EgregiousFlowDetector detector;

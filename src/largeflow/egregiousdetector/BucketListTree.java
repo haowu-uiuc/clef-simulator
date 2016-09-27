@@ -13,6 +13,7 @@ class BucketListTree {
 	private Integer currentLevel;
 	private Integer fanout;
 	private Integer numOfBranches;
+	private Integer burst;
 
 	private ReservationDatabase resDb;
 
@@ -22,7 +23,7 @@ class BucketListTree {
 	private boolean splitByRelativeValue = false;
 
 	public BucketListTree(Integer maxDepth, Integer fanout,
-			Integer numOfBranches, ReservationDatabase resDb) throws Exception {
+			Integer numOfBranches, Integer burst, ReservationDatabase resDb) throws Exception {
 		if (resDb == null) {
 			throw new Exception("Reservation Database cannot be null!");
 		}
@@ -30,7 +31,8 @@ class BucketListTree {
 		this.maxDepth = maxDepth;
 		this.fanout = fanout;
 		this.numOfBranches = numOfBranches;
-
+		this.burst = burst;
+		
 		currentLevel = 1;
 		rootBucketList = new BucketList(fanout, currentLevel);
 		bottomBucketLists = new ArrayList<>();
@@ -120,8 +122,8 @@ class BucketListTree {
 				int value = bucket.getValue();
 				int reservation = bucket.getReservation();
                 if (bucketFlows.size() == 1
-                        && value > (int) (reservation * timeInterval) + NetworkConfig.maxPacketSize) {
-					// the +1 is to raise a little reservation so that avoid
+                        && value > (int) (reservation * timeInterval) + burst) {
+                    // the +1 is to raise a little reservation so that avoid
 					// some false positive at corner
 					// put all flows in this bucket into the large flow list
                     // Only consider bucket with one flow to avoid FP

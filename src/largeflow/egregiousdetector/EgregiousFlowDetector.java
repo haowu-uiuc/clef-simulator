@@ -81,6 +81,7 @@ public class EgregiousFlowDetector extends Detector {
 	    tree = new BucketListTree(maxDepth,
                 fanout,
                 numOfBranches,
+                burst,
                 resDb);
 	    if (splitByRelativeValue) {
 	        tree.splitByRelativeValue();
@@ -189,6 +190,7 @@ public class EgregiousFlowDetector extends Detector {
 		tree = new BucketListTree(maxDepth,
 				fanout,
 				numOfBranches,
+				burst,
 				resDb);
 		if (splitByRelativeValue) {
 		    tree.splitByRelativeValue();
@@ -242,7 +244,8 @@ public class EgregiousFlowDetector extends Detector {
         int optk = -1;
         int N = estimateNumOfFlows();
         double maxOptTarget = 0.0;
-        for (int f = 2; f <= numOfCounters; f++) {
+        for (int f = numOfCounters; f <= numOfCounters; f++) {
+//        for (int f = 2; f <= numOfCounters; f++) {
             int k = calculateNumOfBranches(numOfCounters, f);
             int d = calculateMaxDepth(N, f, k);
 
