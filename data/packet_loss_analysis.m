@@ -10,7 +10,7 @@ loadDataFromFile = 0;
 % expName = 'packet_loss_hybrid_small_packet_20160917';
 % expName = 'packet_loss_hybrid_long_test_burst_20160911';
 % expName = 'packet_loss_fmd_20160919'
-expName = 'packet_loss_fixed_efd_20160925';
+expName = 'packet_loss_fixed_efd_long_20160925';
 % expName = 'packet_loss_flat_20160801_amf_test_fixed_limited_size'
 % expName = 'test_packet_loss_exp';
 routerNameList = {'router_eardet', 'router_eg', 'router_fmf', 'router_amf', 'router_eardet_efd'};
@@ -28,8 +28,8 @@ routerLabelList = {'EARDet', 'EFD', 'FMF w/ FM', 'AMF w/ FM', 'EARDet w/ EFD' };
 
 drawRatio = false;
 minRate = 0;
-maxRate = 50000000;
-start_round = 1;
+maxRate = 5000000;
+start_round = 0;
 draw_heat_map = true;  % 1 for ture, 0 for false
 
 total_damageMatrix_list = {};

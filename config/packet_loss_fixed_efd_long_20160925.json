@@ -4,7 +4,7 @@
     "run_EFD": true,
     "run_FMF": false,
     "run_AMF": false,
-    "run_EARDet_EFD": false,
+    "run_EARDet_EFD": true,
     "run_FMD": false,
     "debug_mode": false,
     "traffic_config": {
