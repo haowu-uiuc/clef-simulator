@@ -8,6 +8,7 @@ import java.util.List;
 
 import largeflow.datatype.FlowId;
 import largeflow.datatype.Packet;
+import largeflow.emulator.NetworkConfig;
 
 import org.junit.After;
 import org.junit.Before;
@@ -25,7 +26,8 @@ public class BucketListTreeTest {
 		when(resDb.getReservation(any(FlowId.class))).thenReturn(600);
 		
 //		resDb = new UniReservationDatabase(600);
-		tree = new BucketListTree(3, 5, 2, resDb);
+		int burst = 1;
+		tree = new BucketListTree(3, 5, 2, burst, resDb);
 	}
 
 	@After
