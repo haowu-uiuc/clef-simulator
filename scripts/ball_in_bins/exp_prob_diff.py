@@ -71,9 +71,10 @@ if __name__ == "__main__":
     print 'repates: %d, num_balls: %d, num_bins: %d' \
         % (repeats, num_balls, num_bins)
 
-    out_file_name = "prob-pick-%d-%d.txt" % (num_bins, num_balls)
-    max_value_out_file_name = "max-prob-%d-%d.txt" % (num_bins, num_balls)
-    prob_diffs_out_file_name = "prob-diffs-%d-%d.txt" % (num_bins, num_balls)
+    out_file_name = "data/prob-pick-%d-%d.txt" % (num_bins, num_balls)
+    max_value_out_file_name = "data/max-prob-%d-%d.txt" % (num_bins, num_balls)
+    prob_diffs_out_file_name = "data/prob-diffs-%d-%d.txt" \
+        % (num_bins, num_balls)
 
     prob_pick_x, prob_max_x, prob_diffs = exp_for_prob(
         repeats, num_balls, num_bins)
