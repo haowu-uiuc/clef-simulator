@@ -10,9 +10,9 @@ function draw_cdf(max_tops, cdf_prob_list, cdf_flow_size_list, num_balls, num_bi
         plot([cdf_flow_size_list{max_tops(i)}, max_alpha], [cdf_prob_list{max_tops(i)}, 1], colors{i});
         hold on;
         if (length(max_tops) == 1 && max_tops(i) == 1)
-            legend_list{i} = 'Simulated prob.';
+            legend_list{i} = 'Actual prob.';
         else
-            legend_list{i} = [num2str(max_tops(i)), '-branches sim. prob.'];
+            legend_list{i} = [num2str(max_tops(i)), '-branches actual prob.'];
         end
         max_flow_size = max(max_flow_size, max(cdf_flow_size_list{max_tops(i)}));
     end

@@ -5,12 +5,12 @@ loadDataFromFile = 0;
 % expName = 'packet_loss_burst_20160801';
 % expName = 'packet_loss_config_test_20160906_2';
 % expName = 'packet_loss_hybrid_test_20160911';
-% expName = 'packet_loss_hybrid_long_test_20160911'
+expName = 'packet_loss_hybrid_long_test_20160911'
 % expName = 'packet_loss_hybrid_least_value_eviction_20160916';
 % expName = 'packet_loss_hybrid_small_packet_20160917';
 % expName = 'packet_loss_hybrid_long_test_burst_20160911';
 % expName = 'packet_loss_fmd_20160919'
-expName = 'packet_loss_fixed_efd_long_burst_20160925';
+% expName = 'packet_loss_fixed_efd_long_burst_20160925';
 % expName = 'packet_loss_flat_20160801_amf_test_fixed_limited_size'
 % expName = 'test_packet_loss_exp';
 routerNameList = {'router_eardet', 'router_eg', 'router_fmf', 'router_amf', 'router_eardet_efd'};
@@ -30,7 +30,7 @@ drawRatio = false;
 minRate = 0;
 maxRate = 5000000;
 start_round = 0;
-draw_heat_map = true;  % 1 for ture, 0 for false
+draw_heat_map = false;  % 1 for ture, 0 for false
 
 total_damageMatrix_list = {};
 FNMatrix = {};
@@ -256,6 +256,7 @@ for j = 1:length(fig_num_counters)
     title(['Total Damage when counter number is ', num2str(fig_num_counter)]);
     xlabel('Large Flow Rate (Bytes / second)')
     ylabel('Total Damage');
+    ylim([10^6, 5000000000]);
     ylim([0, 500000000]);
     legend(routerLabelList);
     saveas(fig, [fig_dir, 'total_damage_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');

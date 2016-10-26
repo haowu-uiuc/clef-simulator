@@ -4,7 +4,7 @@ num_balls_list = [50, 100, 1000, 10000, 100000];
 num_balls_list = [num_balls_list, num_balls_list];
 num_bins_list = [100, 100, 100, 100, 100];
 num_bins_list = [num_bins_list, num_bins_list*10];
-rounds_list = [1000000 * ones(1, 4), 10000, 1000000 * ones(1,3), 10000, 10000];
+rounds_list = [1000000 * ones(1, 10)];
 % max_top = 0;
 
 
