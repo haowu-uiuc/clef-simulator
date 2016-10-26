@@ -19,6 +19,7 @@
         "num_attack_flows": 10,
         "is_burst_attack": false,
         "burst_duty_cycle_ratio": 0.1,
+        "burst_period_to_efd_period": 5,
         "max_packet_size": 1514,
         "flow_spec_burst_tolerance": 6056,
     },
@@ -48,7 +49,9 @@
     },
     "EARDet_EFD_config": {
         "EFD_split_by_relative_value": false,
-        "EARDet_counter_ratio": 0.5
+        "EARDet_counter_ratio": 0.5,
+        "twin_EFD": true,
+        "twin_EFD_Tc2_adjust": 1.0,
     },
     "FMD_config": {
         "least_value_eviction": false,

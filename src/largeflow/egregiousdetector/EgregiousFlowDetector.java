@@ -120,6 +120,16 @@ public class EgregiousFlowDetector extends Detector {
 		return maxDepth;
 	}
 
+	public double getTwinEFDHighPeriod() {
+	    double n = (double)linkCapacity / (double)gamma;
+	    double m = (double)numOfCounters;
+	    double d = (double)maxDepth;
+	    double a05 = Math.sqrt(2 * n / m * Math.log(n));
+	    double gamma_h = n / (2 * m + 1); // EARDet has twice number of counters
+	    double highPeriod = 2 * d * gamma_h / a05 * period;
+	    return highPeriod;
+	}
+	
 	public Integer getNumOfCounters() {
 		return numOfCounters;
 	}
@@ -289,7 +299,7 @@ public class EgregiousFlowDetector extends Detector {
             Integer fanout,
             Integer numOfBranches) {
         return (int) (Math.log((double) numOfFlows / (double) numOfBranches)
-                / Math.log((double) fanout)) + 2;
+                / Math.log((double) fanout) * 1.2) + 1;
     }
 
     private Integer calculateNumOfBranches(Integer numOfCounters,

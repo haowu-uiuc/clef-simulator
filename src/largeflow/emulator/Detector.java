@@ -46,7 +46,7 @@ public abstract class Detector {
 	 * if the packet is blocked by detector, return false, otherwise return true
 	 * also record caught large flow into blacklist map : {flow Id} -> {catch time}
 	 * @param packet
-	 * @return true => pass the detector, flase => blocked by detector
+	 * @return true => pass the detector, false => blocked by detector
 	 * @throws Exception
 	 */
 	abstract public boolean processPacket(Packet packet) throws Exception;
