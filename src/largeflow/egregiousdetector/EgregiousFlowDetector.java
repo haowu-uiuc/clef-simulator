@@ -58,7 +58,7 @@ public class EgregiousFlowDetector extends Detector {
 		numOfFlows = linkCapacity / gamma;    // default value
 		
 		minPeriod = calculateMinPeriod(burst, gamma);
-		if (period <= minPeriod) {
+		if (period < minPeriod) {
 			throw new Exception("Period is too small to tolerate the burst.");
 		}
 
@@ -111,6 +111,10 @@ public class EgregiousFlowDetector extends Detector {
 	public Double getPeriod() {
 		return period;
 	}
+	
+	public void setPeriod(Double period) {
+	    this.period = period;
+	}
 
 	public Integer getFanout() {
 		return fanout;
@@ -120,13 +124,16 @@ public class EgregiousFlowDetector extends Detector {
 		return maxDepth;
 	}
 
-	public double getTwinEFDHighPeriod() {
-	    double n = (double)linkCapacity / (double)gamma;
+	public double getTwinEFDHighPeriod(int outboundLinkCapacity) {
+	    double n = (double)outboundLinkCapacity / (double)gamma;
 	    double m = (double)numOfCounters;
 	    double d = (double)maxDepth;
 	    double a05 = Math.sqrt(2 * n / m * Math.log(n));
 	    double gamma_h = n / (2 * m + 1); // EARDet has twice number of counters
 	    double highPeriod = 2 * d * gamma_h / a05 * period;
+	    if (debug) {
+	        System.out.println("n = " + n + ", m = " + m + ", d = " + d);
+	    }
 	    return highPeriod;
 	}
 	

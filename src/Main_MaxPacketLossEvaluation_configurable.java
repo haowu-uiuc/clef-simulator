@@ -6,6 +6,7 @@ import java.util.List;
 
 import largeflow.eardet.EARDet;
 import largeflow.egregiousdetector.EgregiousFlowDetector;
+import largeflow.egregiousdetector.ParallelEFD;
 import largeflow.emulator.AdvancedRouter;
 import largeflow.emulator.LeakyBucketDetector;
 import largeflow.emulator.Logger;
@@ -113,6 +114,7 @@ public class Main_MaxPacketLossEvaluation_configurable {
         
         boolean BURST_ATTACK = false; // if false then we do flat attack
         double dutyCycle = 0.1; // from 0 to 1.0
+        double burst_period_to_efd_period = 1.;
         
         if (traffic_config.length() > 0) {
             inboundLinkCapacity = traffic_config.getInt("inbound_link_capacity");
@@ -121,6 +123,7 @@ public class Main_MaxPacketLossEvaluation_configurable {
             NetworkConfig.maxPacketSize = traffic_config.getInt("max_packet_size");
             BURST_ATTACK = traffic_config.getBoolean("is_burst_attack");
             dutyCycle = traffic_config.getDouble("burst_duty_cycle_ratio");
+            burst_period_to_efd_period = traffic_config.getDouble("burst_period_to_efd_period");
         }
         int maxPacketSize = NetworkConfig.maxPacketSize;
         
@@ -191,11 +194,11 @@ public class Main_MaxPacketLossEvaluation_configurable {
         int eg_gamma = largeFlowRate;
         int eg_burst = burstTolerance;
         double minPeriod = (double) burstTolerance / (double) largeFlowRate;
-        double period = 1.5 * minPeriod;
+        double period = 1 * minPeriod;
         int tmpNumOfCounters = 100;
-        // smarter burst attack flow based on EFD
-        double burst_length = period;
-        double burst_period = period / dutyCycle;
+        // set burst attack flow based on EFD
+        double burst_period = period * burst_period_to_efd_period;
+        double burst_length = burst_period * dutyCycle;
         
         boolean split_by_relative_value = false;
         
@@ -249,9 +252,13 @@ public class Main_MaxPacketLossEvaluation_configurable {
         // for EARDet + EFD hybrid
         double ratioOfEARDetMemory = 0.5;
         boolean split_by_relative_value_2 = false;
+        boolean twin_efd = false;
+        double twin_efd_Tc2_adjust = 1.0;
         if (EARDet_EFD_config.length() > 0) {
             ratioOfEARDetMemory = EARDet_EFD_config.getDouble("EARDet_counter_ratio");
             split_by_relative_value_2 = EARDet_EFD_config.getBoolean("EFD_split_by_relative_value");
+            twin_efd = EARDet_EFD_config.getBoolean("twin_EFD");
+            twin_efd_Tc2_adjust = EARDet_EFD_config.getDouble("twin_EFD_Tc2_adjust");
         }
         
         // for flow memory detector
@@ -289,12 +296,16 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 period,
                 inboundLinkCapacity,
                 tmpNumOfCounters);
+//        egDetector.setEstimatedNumOfFlows(
+//                numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
         egDetector.setEstimatedNumOfFlows(
-                numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+                outboundLinkCapacity / eg_gamma);
         if (split_by_relative_value) {
             egDetector.splitBucketByRelativeValue();
         }
-        // egDetector.enableDebug();
+        if (DEBUG) {
+            egDetector.enableDebug();
+        }
 
         // setup FMF
         FlowMemoryFactory fm_factory_fmf = new FlowMemoryFactory(burstTolerance,
@@ -349,11 +360,28 @@ public class Main_MaxPacketLossEvaluation_configurable {
                 period,
                 inboundLinkCapacity,
                 tmpNumOfCounters);
-        egDetector_2.setEstimatedNumOfFlows(
-                numOfLargeFlows + numOfFullRealFlows + numOfUnderUseRealFlows);
+        EgregiousFlowDetector egDetector_3_for_twin = new EgregiousFlowDetector(
+                "egregious-detector",
+                eg_gamma,
+                eg_burst,
+                period,
+                inboundLinkCapacity,
+                tmpNumOfCounters);        
+        egDetector_2.setEstimatedNumOfFlows(outboundLinkCapacity / eg_gamma);
+        egDetector_3_for_twin.setEstimatedNumOfFlows(outboundLinkCapacity / eg_gamma);
         if (split_by_relative_value_2) {
             egDetector_2.splitBucketByRelativeValue();
+            egDetector_3_for_twin.splitBucketByRelativeValue();
         }
+        if (DEBUG) {
+            egDetector_2.enableDebug();
+            egDetector_3_for_twin.enableDebug();
+        }
+        ParallelEFD twinEFD = new ParallelEFD("twib-efd", outboundLinkCapacity);
+        twinEFD.addEFD(egDetector_2);
+        twinEFD.addEFD(egDetector_3_for_twin);
+        twinEFD.setTwinEFD();
+        twinEFD.setTwinEFDTc2Adjust(twin_efd_Tc2_adjust);
         
         // setup Flow Memory Detector
         FlowMemoryFactory fm_factory_fmd = new FlowMemoryFactory(burstTolerance,
@@ -392,7 +420,11 @@ public class Main_MaxPacketLossEvaluation_configurable {
         AdvancedRouter router5 = new AdvancedRouter("router_eardet_efd",
                 inboundLinkCapacity,
                 outboundLinkCapacity);
-        router5.setPreQdDetector(egDetector_2, 1. - ratioOfEARDetMemory);
+        if (twin_efd) {
+            router5.setPreQdDetector(twinEFD, 1. - ratioOfEARDetMemory);
+        } else {
+            router5.setPreQdDetector(egDetector_2, 1. - ratioOfEARDetMemory);
+        }
         router5.setPostQdDetector(eardet_2, ratioOfEARDetMemory);
         
         AdvancedRouter router6 = new AdvancedRouter("router_fmd",
