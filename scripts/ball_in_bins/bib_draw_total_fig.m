@@ -186,8 +186,9 @@ end
 
 % calculate experiment setting:
 n = 10000;
-m = [5, 10, 15, 17, 25, 37, 50, 100];
-d = floor(log(n)./log(m))+1;
+m = [5, 10, 17, 25, 37, 50, 100];
+d = floor(log(n)./log(m) * 1.2)+1
 a05 = (2.*n./m.*log(n)).^0.5;
 gamma_h = n./(2.*m+1);
-T2 = 2.*d.*gamma_h./a05./1.*1
+T2 = 2.*d.*gamma_h./a05./1.*1 * 1.5
+T2_d = T2./d
