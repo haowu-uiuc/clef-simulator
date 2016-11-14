@@ -2,7 +2,7 @@ function draw_cdf(max_tops, cdf_prob_list, cdf_flow_size_list, num_balls, num_bi
     colors = {'b-*', 'r-x', 'm-v', 'k-^', 'g-d', 'c-o', 'y-+'};
     
     max_alpha = 1000;
-    
+        
     fig = figure;
     legend_list = {};
     max_flow_size = 0;
@@ -10,7 +10,7 @@ function draw_cdf(max_tops, cdf_prob_list, cdf_flow_size_list, num_balls, num_bi
         plot([cdf_flow_size_list{max_tops(i)}, max_alpha], [cdf_prob_list{max_tops(i)}, 1], colors{i});
         hold on;
         if (length(max_tops) == 1 && max_tops(i) == 1)
-            legend_list{i} = 'Actual prob.';
+            legend_list{i} = 'Worst-case';
         else
             legend_list{i} = [num2str(max_tops(i)), '-branches actual prob.'];
         end
@@ -25,16 +25,16 @@ function draw_cdf(max_tops, cdf_prob_list, cdf_flow_size_list, num_balls, num_bi
     ymax = n/m + sqrt(2*n/m*log(n));
     k = ymax - a;
     p = 1 - poisscdf(k, lt);
-    legend_list{length(legend_list)+1} = 'Approx. lower bound';
+    legend_list{length(legend_list)+1} = 'Lower bound';
     plot(a, p, 'r--');
-    
+        
     title(['n=', num2str(num_balls), ' m=', num2str(num_bins)]);
     xlabel('\alpha = R_{atk}/\gamma')
     ylabel('Probability');
-    ylim([0, 1.3]);
+    ylim([0, 1.5]);
     xlim([1, max_flow_size * 1.2]);
     legend(legend_list);
-    set(gcf,'Position',[100 100 200 160]);
+    set(gcf,'Position',[100 100 180 130]);
     
     saveas(fig, ['./fig/det_prob_', num2str(num_bins), '_c_', num2str(num_balls),...
         '_f', '.pdf'], 'pdf');

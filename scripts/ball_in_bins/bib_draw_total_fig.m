@@ -1,7 +1,7 @@
 clear all, close all, clc;
 
 num_balls_list = [100000, 1000];
-num_bins_list = [100, 100];
+num_bins_list = [1000, 100];
 rounds_list = [1000000 * ones(1, 2)];
 % 
 % num_balls_list = [100000, 100];
@@ -83,11 +83,12 @@ actual_prob_flow_size = actual_data(:,1);
 
 % draw figure
 fig = figure;
-legend_list = {'Actual Pr_{worst}', 'Approx. Pr_{worst}'};
+% legend_list = {'Worst-case Pr(A_{\alpha})', 'Approx. Pr_{worst}'};
+legend_list = {'Worst-case Pr(A_{\alpha})'};
 % plot(total_flow_size, total_cdf_prob, '-*b');
 plot(actual_prob_flow_size, actual_prob, '-*b');
 hold on;
-plot(total_flow_size, first_levels_prob, '-m', 'LineWidth',2);
+% plot(total_flow_size, first_levels_prob, '-m', 'LineWidth',2);
 
 % calculate theoretical bound
 n = num_balls_list(1);
@@ -98,7 +99,7 @@ ymax = n/m + sqrt(2*n/m*log(n));
 k = ymax - a;
 d_gamma = floor(log(n/n_gamma)/log(m)) + 1;
 p = (1 - poisscdf(k, lt)).^d_gamma;
-legend_list{length(legend_list)+1} = 'Pr_{worst} lower bound';
+legend_list{length(legend_list)+1} = 'Pr(A_{\alpha}) lower bound';
 plot(a, p, 'r--');
 
 title(['Total Probability. n=', num2str(n), ' m=', num2str(num_bins)]);
@@ -107,27 +108,34 @@ ylabel('Probability');
 ylim([0, 1.3]);
 xlim([1, 250]);
 legend(legend_list);
-set(gcf,'Position',[100 100 400 200]);
+set(gcf,'Position',[100 100 300 150]);
 
 
 % damage trend
 figure;
-d_bound = (a-1) ./ p;
+
+MB = 1000000*8;
+Tc1 = 0.1;
+rho = 40 * 10^9;
+gamma = rho / n / MB
+d_bound = (a-1) ./ p * gamma * Tc1;
+d_bound(1) = 10000 * gamma * Tc1;
 t = min(ones(1, length(p)) * 100, 1./total_cdf_prob);
-d = (total_flow_size-1) ./ total_cdf_prob;
+d = (total_flow_size-1) ./ total_cdf_prob * gamma * Tc1;
+d(1) = 1000000 * gamma * Tc1;
 % semilogy(total_flow_size, d, '*-b');
 plot(total_flow_size, d, '*-b');
 hold on
 plot(a, d_bound, '--r');
 % EARDet limit
 plot([n/(m+1), n/(m+1)+0.1], [10^10, 1], 'k--')
-legend('By P_{worst}', 'Upperbound', 'EARDet Limit \gamma_{h}');
-ylim([100, 2*10^4]);
+legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
+ylim([100*gamma * Tc1, 2*10^3*gamma * Tc1]);
 xlim([0, 1200]);
 title('\theta = 1.0');
 xlabel('\alpha = R_{atk}/\gamma');
-ylabel('Theoretical Damage');
-set(gcf,'Position',[100 100 250 200]);
+ylabel('Overuse Damage (MB)');
+set(gcf,'Position',[100 100 210 150]);
 
 
 % bursty flow damage trend
@@ -135,58 +143,99 @@ thetas = [0.8, 0.5, 0.25, 0.15];
 for i = 1:length(thetas)
 theta = thetas(i);
 figure;
-d_bound = (a-1) ./ p / theta;
+d_bound = (a-1) ./ p / theta * gamma * Tc1;
+d_bound(1) = 10000 * gamma * Tc1; % handle the corner case
 t = min(ones(1, length(p)) * 100, 1./total_cdf_prob);
-d = (total_flow_size-1) ./ total_cdf_prob / theta;
+d = (total_flow_size-1) ./ total_cdf_prob / theta * gamma * Tc1;
+d(1) = 1000000 * gamma * Tc1; % handle the corner case
 % semilogy(total_flow_size, d, '*-b');
 plot(total_flow_size / theta, d, '*-b');
 hold on
 plot(a / theta, d_bound, '--r');
 % EARDet limit
 plot([n/(m+1) * theta, n/(m+1) * theta+0.1], [10^10, 1], 'k--')
-legend('By P_{worst}', 'Upperbound', 'EARDet Limit \gamma_{h}');
-ylim([100, 2*10^4]);
-xlim([0, 2000]);
+legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
+ylim([100*gamma * Tc1, 2*10^3*gamma * Tc1]);
+xlim([0, 1200]);
 title(['\theta=', num2str(theta), ', \theta T_b >= 2T_c^{(1)}']);
 xlabel('\alpha = R_{atk}/\gamma');
-ylabel('Theoretical Damage');
-set(gcf,'Position',[100 100 250 200]);
+ylabel('Overuse Damage (MB)');
+set(gcf,'Position',[100 100 210 160]);
 end
 
 
 % bursty flow damage trend for twin-efd
 thetas = [0.8, 0.5, 0.25, 0.15];
 a1 = 2*(2*n/m*log(n))^0.5;
+% a1 = 100
 for i = 1:length(thetas)
 theta = thetas(i);
 figure;
 gamma_h = n/(m+1);
 depth = floor(log(n)/log(m)) + 1;
-d_bound = (a-1) ./ p * depth * gamma_h * 2 / a1;
+d_bound = (a-1) ./ p * depth * gamma_h * 2 / a1 * gamma * Tc1;
+d_bound(1) = 1000000 * gamma * Tc1; % handle the corner case
 t = min(ones(1, length(p)) * 100, 1./total_cdf_prob);
-d = (total_flow_size-1) ./ total_cdf_prob * depth * gamma_h * 2 / a1;
+d = (total_flow_size-1) ./ total_cdf_prob * depth * gamma_h * 2 / a1 * gamma * Tc1;
+d(1) = 1000000 * gamma * Tc1; % handle the corner case
 % semilogy(total_flow_size, d, '*-b');
 plot(total_flow_size, d, '*-b');
 hold on
 plot(a, d_bound, '--r');
 % EARDet limit
-plot([n/(m+1) * theta, n/(m+1) * theta+0.1], [10^10, 1], 'k--')
-legend('By P_{worst}', 'Upperbound', 'EARDet Limit \gamma_{h}');
-ylim([100, 5*10^4]);
-xlim([0, 2000]);
+plot([n/(m+1) * theta, n/(m+1) * theta+0.1], [10^10* gamma * Tc1, 1], 'k--')
+legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
+ylim([100*gamma * Tc1, 2.5*10^4*gamma * Tc1]);
+xlim([0, 1200]);
 title(['\theta=', num2str(theta), ', \theta T_b < 2T_c^{(1)}']);
 xlabel('\alpha = R_{atk}/\gamma');
-ylabel('Theoretical Damage');
-set(gcf,'Position',[100 100 250 200]);
+ylabel('Overuse Damage (MB)');
+set(gcf,'Position',[100 100 210 160]);
 end
 
 
+% draw detectable rate
+n = 100000;
+m = 5:5:100;
+a_eardet = n./(m+1);
+a_fm = n./m;
+a05 = 2* (n./m.*log(n)).^0.5;
+a10 = 4* (n./m.*log(n)).^0.5;
+figure;
+plot(m, a_eardet, 'k-*');
+hold on;
+plot(m, a_fm, 'b-x');
+plot(m, a10, 'r-^');
+% plot(m, a05, 'm-v');
+title('n_{\gamma}=10^5');
+ylabel('\alpha = R_{atk}/\gamma');
+xlabel('Number of Counters (m)')
+legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
+set(gcf,'Position',[100 100 230 160]);
 
+n = 10000000;
+m = 50:50:1000;
+a_eardet = n./(m+1);
+a_fm = n./m;
+a05 = 2* (n./m.*log(n)).^0.5;
+a10 = 4* (n./m.*log(n)).^0.5;
+figure;
+plot(m, a_eardet, 'k-*');
+hold on;
+plot(m, a_fm, 'b-x');
+plot(m, a10, 'r-^');
+% plot(m, a05, 'm-v');
+title('n_{\gamma}=10^7');
+ylabel('\alpha = R_{atk}/\gamma');
+xlabel('Number of Counters (m)')
+legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
+set(gcf,'Position',[100 100 230 160]);
 
 
 % calculate experiment setting:
 n = 10000;
 m = [5, 10, 17, 25, 37, 50, 100];
+% m = [20, 40, 70, 100, 150, 200, 400];
 d = floor(log(n)./log(m) * 1.2)+1
 a05 = (2.*n./m.*log(n)).^0.5;
 gamma_h = n./(2.*m+1);
