@@ -208,9 +208,10 @@ plot(m, a_fm, 'b-x');
 plot(m, a10, 'r-^');
 % plot(m, a05, 'm-v');
 title('n_{\gamma}=10^5');
-ylabel('\alpha = R_{atk}/\gamma');
+ylabel('\alpha = R_{min}/\gamma');
 xlabel('Number of Counters (m)')
-legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
+legend('EARDet', 'FM/AMF-FM (Expected)', '2RLFD/CLEF (Upperbound)');
+% legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
 set(gcf,'Position',[100 100 230 160]);
 
 n = 10000000;
@@ -226,9 +227,10 @@ plot(m, a_fm, 'b-x');
 plot(m, a10, 'r-^');
 % plot(m, a05, 'm-v');
 title('n_{\gamma}=10^7');
-ylabel('\alpha = R_{atk}/\gamma');
+ylabel('\alpha = R_{min}/\gamma');
 xlabel('Number of Counters (m)')
-legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
+legend('EARDet', 'FM/AMF-FM (Expected)', '2RLFD/CLEF (Upperbound)');
+% legend('EARDet Min. Rate', 'FM/AMF-FM Approx. Min. Rate', '2RLFD/CLEF 1.0-Prob. Rate');
 set(gcf,'Position',[100 100 230 160]);
 
 
