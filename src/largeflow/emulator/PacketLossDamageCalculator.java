@@ -42,9 +42,10 @@ public class PacketLossDamageCalculator {
         damage.FP = getFP();
         damage.TP = getTP();
 
-        Long BE_theo = outboundCapacity - attackReservedTrafficVolume 
+        Long BE_theo = (long)(outboundCapacity * flowGenerator.getTraceLength()) - attackReservedTrafficVolume 
                 - preQdRealTrafficVolume + blockedRealTrafficVolume;
-        Long BE_actual = outboundCapacity - postQdAttackTrafficVolume - postQdRealTrafficVolume;
+        Long BE_actual = (long)(outboundCapacity * flowGenerator.getTraceLength())
+                - postQdAttackTrafficVolume - postQdRealTrafficVolume;
         
         
         Long damage_BE = BE_theo - BE_actual;

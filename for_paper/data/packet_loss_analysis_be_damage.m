@@ -167,7 +167,7 @@ for i = 1:length(routerNameList)
             'counterToIndexMap', 'rateToIndexMap');
     end
     
-    total_damageMatrix = be_damageMatrix; %%%%% a hack %%%%%
+    total_damageMatrix = be_damageMatrix + qd_damageMatrix; %%%%% a hack %%%%%
     total_damageMatrix_list{i} = total_damageMatrix;
     FNMatrix_list{i} = FNMatrix;
     
