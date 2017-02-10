@@ -24,7 +24,7 @@ if not os.path.exists(scriptDir):
 if not os.path.exists(scratchExpDir):
     os.makedirs(scratchExpDir)
 
-pbs_template = """\
+pbs_prefix_template = """\
 #!/bin/bash
 
 #
@@ -40,8 +40,9 @@ pbs_template = """\
 #
 #####################################
 
-# print job file name
-echo "$0"
+""".format(date=time.strftime("%x"))
+
+pbs_template = """\
 
 # Change to the directory from which the batch job was submitted
 cd {scratch_exp_dir}
@@ -54,7 +55,6 @@ module load java/1.8
 
 # Run JAVA code
 java -Xms1024m -Xmx2048m -d64 -jar {jar_name}""".format(
-    date=time.strftime("%x"),
     jar_name=jarName,
     scratch_exp_dir=scratchExpDir)
 
@@ -86,6 +86,8 @@ for i in range(startRound, numOfRounds + startRound):
             rate_file_prefix + ".pbs"
 
         f = open(scriptDir + "/" + pbs_file_name, "w")
+        f.write(pbs_prefix_template)
+        f.write("echo " + pbs_file_name + "\n")
         f.write(pbs_template)
         f.write(" --start_round " + str(i))
         f.write(" --repeat_rounds 1")
