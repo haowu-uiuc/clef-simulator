@@ -13,7 +13,7 @@
         "time_interval": 5,
         "per_flow_reservation": 12500,
         "full_use_flow_packet_size": 500,
-        "num_full_use_flows": 6500,
+        "num_full_use_flows": 9990,
         "num_under_use_flows": 0,
         "attack_flow_packet_size": 500,
         "num_attack_flows": 10,

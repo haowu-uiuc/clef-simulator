@@ -30,6 +30,25 @@ public class PacketLossDamageCalculator {
     
     
     // TODO: modify the damage measurer to use blockedRealTrafficVolume
+    /**
+     * calculate the damage
+     * @param attackReservedTrafficVolume
+     *      The sum of {{reservation_bandwidth} * {lifetime of each attack flow}}
+     *      An attack flow can be caught before the end of experiment, thus,
+     *      the rest of bandwidth are for best-effort traffic
+     * @param preQdRealTrafficVolume
+     *      The amount of legitimate traffic from inbound link
+     * @param postQdAttackTrafficVolume
+     *      The amount of attack traffic in the outbound link
+     * @param postQdRealTrafficVolume
+     *      The amount of legitimate traffic in the outbound link
+     * @param blockedRealTrafficVolume
+     *      The amount of legitimate traffic blocked by detectors
+     * @param outboundCapacity
+     * 
+     * @return
+     * @throws Exception
+     */
     public Damage getMeasuredDamage(long attackReservedTrafficVolume,
             long preQdRealTrafficVolume,
             long postQdAttackTrafficVolume, 
@@ -47,13 +66,20 @@ public class PacketLossDamageCalculator {
         Long BE_actual = (long)(outboundCapacity * flowGenerator.getTraceLength())
                 - postQdAttackTrafficVolume - postQdRealTrafficVolume;
         
-        
         Long damage_BE = BE_theo - BE_actual;
+        Long damage_Priority = preQdRealTrafficVolume - postQdRealTrafficVolume;
         if (damage_BE < 0) {
             System.out.println("damage_BE is less than zero! damage_BE = " + damage_BE);
+            damage_Priority += damage_BE; // exclude the packet drop caused by legitimate flow itself.
             damage_BE = (long) 0;
+            if (damage_Priority < 0) {
+                // the negative damage should be just some small error
+                System.out.println("damage_Priority is less than zero! damage_Priority = " + damage_Priority);
+                damage_Priority = (long) 0;
+            }
         }
-        Long damage_Priority = preQdRealTrafficVolume - postQdRealTrafficVolume;
+        System.out.println("damage_priority = " + damage_Priority);
+        System.out.println("FN = " + damage.FN);
         
         damage.totalDamage = damage_Priority * damageRatio + damage_BE;
         damage.perFlowDamage = damage.totalDamage / flowGenerator.getNumOfAttFlows();
