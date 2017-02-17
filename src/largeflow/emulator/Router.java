@@ -27,7 +27,9 @@ public interface Router {
 	public Double flowBlackListTime(FlowId flowId);
 	
 	/**
-	 * please call this at the end of the a run.
+	 * please call this at the end of the a run, 
+	 * otherwise the blacklist is not updated later.
+	 * FIXME: fix this hack
 	 * @return
 	 */
 	public Map<FlowId, Double> getBlackList();

@@ -68,6 +68,7 @@ public class PacketLossDamageCalculator {
         
         Long damage_BE = BE_theo - BE_actual;
         Long damage_Priority = preQdRealTrafficVolume - postQdRealTrafficVolume;
+        /*
         if (damage_BE < 0) {
             System.out.println("damage_BE is less than zero! damage_BE = " + damage_BE);
             damage_Priority += damage_BE; // exclude the packet drop caused by legitimate flow itself.
@@ -78,10 +79,14 @@ public class PacketLossDamageCalculator {
                 damage_Priority = (long) 0;
             }
         }
+        */
         System.out.println("damage_priority = " + damage_Priority);
         System.out.println("FN = " + damage.FN);
         
-        damage.totalDamage = damage_Priority * damageRatio + damage_BE;
+        damage.totalDamage = (double) (damage_Priority + damage_BE);
+        if (damage.totalDamage < 0) {
+            damage.totalDamage = 0.;
+        }
         damage.perFlowDamage = damage.totalDamage / flowGenerator.getNumOfAttFlows();
         damage.BE_damage = (double) damage_BE;
         damage.FP_damage = (double) blockedRealTrafficVolume; // TODO: may change later

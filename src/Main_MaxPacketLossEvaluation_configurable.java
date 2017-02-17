@@ -142,6 +142,8 @@ public class Main_MaxPacketLossEvaluation_configurable {
         int numOfLargeFlows = 10;
         // maximum burst size
         int burstTolerance = maxPacketSize * 4;
+        // max_num_admitted_flows
+        int maxNumOfAdmittedFlows = -1;
         
         if (traffic_config.length() > 0) {
             perFlowReservation = traffic_config.getInt("per_flow_reservation");
@@ -151,6 +153,9 @@ public class Main_MaxPacketLossEvaluation_configurable {
             largeFlowPacketSize = traffic_config.getInt("attack_flow_packet_size");
             numOfLargeFlows = traffic_config.getInt("num_attack_flows");
             burstTolerance = traffic_config.getInt("flow_spec_burst_tolerance");
+            if (traffic_config.has("max_num_admitted_flows")) {
+                maxNumOfAdmittedFlows = traffic_config.getInt("max_num_admitted_flows");
+            }
         }
         
         // rate of large flows
@@ -513,6 +518,7 @@ public class Main_MaxPacketLossEvaluation_configurable {
         MaxPacketLossDamageEvaluator evaluator = new MaxPacketLossDamageEvaluator(
                 atkRateList, numOfCounterList);
 
+        evaluator.setMaxNumOfAdmittedFlows(maxNumOfAdmittedFlows);
         evaluator.setLogger(new Logger(expName));
         evaluator.setFlowGenerator(flowGenerator);
         evaluator.setBaseDetector(baseDetector);

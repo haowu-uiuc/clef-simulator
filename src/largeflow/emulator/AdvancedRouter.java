@@ -99,6 +99,7 @@ public class AdvancedRouter implements Router {
             RoutingTable routingTable) {
         this.name = name;
         
+        blackList = new TreeMap<>();
         blackList_DroppedTraffic = new TreeMap<>();
         
         this.inboundCapacities = new ArrayList<>(inboundCapacities);
@@ -221,7 +222,7 @@ public class AdvancedRouter implements Router {
 
     @Override
     public void reset() {
-        blackList = null;
+        blackList = new TreeMap<>();
         blackList_DroppedTraffic = new TreeMap<>();
         
         // reset inbound side detector
@@ -259,6 +260,7 @@ public class AdvancedRouter implements Router {
                 blackList_DroppedTraffic.put(packet.flowId, droppedTraffic);
             } else {
                 blackList_DroppedTraffic.put(packet.flowId, packet.size);
+                blackList.put(packet.flowId, packet.time);
             }
             
             return false;
@@ -484,10 +486,14 @@ public class AdvancedRouter implements Router {
 
     @Override
     public Map<FlowId, Double> getBlackList() {
-        if (blackList != null) {
-            return blackList;
-        }
-        
+        return blackList;
+    }
+    
+    /**
+     * acquire more accurate blacklist timing
+     * @return
+     */
+    public Map<FlowId, Double> updateBlackListFromDetector() {        
         blackList = new TreeMap<>();
         if (preQdDetector != null) {
             blackList.putAll(preQdDetector.blackList);

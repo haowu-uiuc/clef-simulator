@@ -2,8 +2,11 @@ package largeflow.emulator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import largeflow.datatype.Damage;
 import largeflow.datatype.FlowId;
@@ -38,6 +41,12 @@ public class MaxPacketLossDamageEvaluator {
     private int maxPacketSize;
     private List<Integer> atkRateList;
     private List<Integer> numOfCounterList;
+    
+    // max number of admitted flows: 
+    // always admit attack flows (for experiment purpose)
+    // admit legitimate flows as much as possible
+    // -1 means no limit
+    private int maxNumOfAdmittedFlows = -1;
     
     private Long preQdRealTrafficVolume;
     private HashMap<String, Long> postQdAttackTrafficMap;
@@ -126,6 +135,10 @@ public class MaxPacketLossDamageEvaluator {
         this.minNumOfCounters = min;
     }
 
+    public void setMaxNumOfAdmittedFlows(int max) {
+        maxNumOfAdmittedFlows = max;
+    }
+    
     public void setStartRound(int startRound) throws Exception {
         if (startRound < 0) {
             throw new Exception("start round cannot be negative!");
@@ -199,6 +212,26 @@ public class MaxPacketLossDamageEvaluator {
         if (logger == null) {
             throw new Exception("Please set logger, or the run is wasted");
         }
+        
+        Set<FlowId> nonAdmittedFlows = new HashSet<>();
+        if (maxNumOfAdmittedFlows > 0) {
+            // need to have a non-admitted flow set:
+            int numOfNonAdmitted = flowGenerator.getNumOfFlows() 
+                    - maxNumOfAdmittedFlows;
+            int count = 0;
+            Random rand = new Random();
+            while (count < numOfNonAdmitted) {
+                int r = rand.nextInt(flowGenerator.getNumOfFullRealFlows() 
+                        + flowGenerator.getNumOfUnderUseRealFlows()) + 1
+                        + flowGenerator.getNumOfAttFlows();
+                FlowId fid = new FlowId(r);
+                if (!nonAdmittedFlows.contains(fid)) {
+                    nonAdmittedFlows.add(fid);
+                    count++;
+                }
+            }
+            System.out.println("Flows in waiting list: " + nonAdmittedFlows);
+        }
 
         // log configs
         logger.logTestConfig(maxAtkRate,
@@ -224,8 +257,6 @@ public class MaxPacketLossDamageEvaluator {
                 
                 flowGenerator.setAttackRate(atkRate);
                 flowGenerator.generateFlows();
-                preQdRealTrafficVolume = flowGenerator.getUnderUseRealTrafficVolume()
-                        + flowGenerator.getFullRealTrafficVolume();
                 
                 PacketReader packetReader = PacketReaderFactory
                         .getPacketReader(flowGenerator.getOutputFile());
@@ -245,8 +276,14 @@ public class MaxPacketLossDamageEvaluator {
                             + "\tCounter: " + numOfCounters);
 
                     try {
+                        Map<String, Set<FlowId>> nonAdmittedFlowsMap =
+                                new HashMap<>();
                         for (Router router : routersToEvalList) {
                             router.setNumOfDetectorCounters(numOfCounters);
+                            
+                            // init non admit flow set
+                            nonAdmittedFlowsMap.put(router.name(),
+                                    new HashSet<>(nonAdmittedFlows));
                         }
                         
                         // reset routers and base detector
@@ -262,12 +299,35 @@ public class MaxPacketLossDamageEvaluator {
                         while((packet = packetReader.getNextPacket()) != null){
                             baseDetector.processPacket(packet);
                             for(AdvancedRouter router : routersToEvalList){
-                                if (!router.processPacket(packet) 
-                                        && !flowGenerator.isLargeFlow(packet.flowId) ) {
-                                    // accumulate the blocked real traffic (legitimate traffic), 
-                                    // i.e. FP traffic
-                                    long value = blockedRealTrafficMap.get(router.name());
-                                    blockedRealTrafficMap.put(router.name(), value + packet.size);
+                                Set<FlowId> nonAdFlows = 
+                                        nonAdmittedFlowsMap.get(router.name());
+                                if (nonAdFlows.contains(packet.flowId)) {
+                                    // if the flow is in the non admitted set, skip
+                                    continue;
+                                }
+                                
+                                int preBlSize = router.getBlackList().size();
+                                
+                                // packet process
+                                boolean isBlocked = !router.processPacket(packet);
+                                int postBlSize = router.getBlackList().size();
+                                int moreToAdmit = postBlSize - preBlSize;
+                                while (moreToAdmit > 0 && !nonAdFlows.isEmpty()) {
+                                    FlowId fid = nonAdFlows.iterator().next();
+                                    nonAdFlows.remove(fid);
+                                    moreToAdmit--;
+                                    System.out.println(router.name() + " admit flow " 
+                                            + fid + " at " + packet.time);
+                                }
+                                
+                                if (! flowGenerator.isLargeFlow(packet.flowId)) {
+                                    preQdRealTrafficVolume += packet.size;
+                                    if (isBlocked) {                                    
+                                        // accumulate the blocked real traffic (legitimate traffic), 
+                                        // i.e. FP traffic
+                                        long value = blockedRealTrafficMap.get(router.name());
+                                        blockedRealTrafficMap.put(router.name(), value + packet.size);
+                                    }
                                 }
                                 accumulateOutputTraffic(router);
                             }

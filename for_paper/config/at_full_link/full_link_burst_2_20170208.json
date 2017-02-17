@@ -13,7 +13,7 @@
         "time_interval": 200,
         "per_flow_reservation": 12500,
         "full_use_flow_packet_size": 500,
-        "num_full_use_flows": 9990,
+        "num_full_use_flows": 10000,
         "num_under_use_flows": 0,
         "attack_flow_packet_size": 500,
         "num_attack_flows": 10,
@@ -22,6 +22,7 @@
         "burst_period_to_efd_period": 15,
         "max_packet_size": 1514,
         "flow_spec_burst_tolerance": 3028,
+        "max_num_admitted_flows": 10000,
     },
     "EARDet_config": {
         "gamma_low": 12500,
