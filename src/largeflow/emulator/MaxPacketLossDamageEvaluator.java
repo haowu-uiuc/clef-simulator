@@ -48,7 +48,7 @@ public class MaxPacketLossDamageEvaluator {
     // -1 means no limit
     private int maxNumOfAdmittedFlows = -1;
     
-    private Long preQdRealTrafficVolume;
+    private HashMap<String, Long> preQdRealTrafficMap;
     private HashMap<String, Long> postQdAttackTrafficMap;
     private HashMap<String, Long> postQdRealTrafficMap;
     private HashMap<String, Long> blockedRealTrafficMap;
@@ -71,7 +71,7 @@ public class MaxPacketLossDamageEvaluator {
         postQdRealTrafficMap = new HashMap<>();
         blockedRealTrafficMap = new HashMap<>();
         preQdAttackResvMap = new HashMap<>();
-        preQdRealTrafficVolume = (long)0;
+        preQdRealTrafficMap = new HashMap<>();
     }
 
     @Deprecated
@@ -92,7 +92,7 @@ public class MaxPacketLossDamageEvaluator {
         postQdRealTrafficMap = new HashMap<>();
         blockedRealTrafficMap = new HashMap<>();
         preQdAttackResvMap = new HashMap<>();
-        preQdRealTrafficVolume = (long)0;
+        preQdRealTrafficMap = new HashMap<>();
     }
     
     public MaxPacketLossDamageEvaluator(List<Integer> atkRateList,
@@ -110,7 +110,7 @@ public class MaxPacketLossDamageEvaluator {
         postQdRealTrafficMap = new HashMap<>();
         blockedRealTrafficMap = new HashMap<>();
         preQdAttackResvMap = new HashMap<>();
-        preQdRealTrafficVolume = (long)0;
+        preQdRealTrafficMap = new HashMap<>();
     }
 
     public void configAtkRate(int max,
@@ -321,7 +321,8 @@ public class MaxPacketLossDamageEvaluator {
                                 }
                                 
                                 if (! flowGenerator.isLargeFlow(packet.flowId)) {
-                                    preQdRealTrafficVolume += packet.size;
+                                    preQdRealTrafficMap.put(router.name(), 
+                                            preQdRealTrafficMap.get(router.name()) + packet.size);
                                     if (isBlocked) {                                    
                                         // accumulate the blocked real traffic (legitimate traffic), 
                                         // i.e. FP traffic
@@ -349,7 +350,7 @@ public class MaxPacketLossDamageEvaluator {
                             
                             Damage damage = damageCalculator.getMeasuredDamage(
                                     preQdAttackResvMap.get(router.name()),
-                                    preQdRealTrafficVolume,
+                                    preQdRealTrafficMap.get(router.name()),
                                     postQdAttackTrafficMap.get(router.name()),
                                     postQdRealTrafficMap.get(router.name()),
                                     blockedRealTrafficMap.get(router.name()),
@@ -364,7 +365,7 @@ public class MaxPacketLossDamageEvaluator {
                                     numOfCounters,
                                     round,
                                     preQdAttackResvMap.get(router.name()),
-                                    preQdRealTrafficVolume,
+                                    preQdRealTrafficMap.get(router.name()),
                                     postQdAttackTrafficMap.get(router.name()),
                                     postQdRealTrafficMap.get(router.name()),
                                     blockedRealTrafficMap.get(router.name()),
@@ -436,6 +437,7 @@ public class MaxPacketLossDamageEvaluator {
             postQdRealTrafficMap.put(router.name(), (long) 0);
             preQdAttackResvMap.put(router.name(), (long) 0);
             blockedRealTrafficMap.put(router.name(), (long) 0);
+            preQdRealTrafficMap.put(router.name(), (long) 0);
         }
     }
     
