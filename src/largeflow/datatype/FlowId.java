@@ -29,6 +29,10 @@ public class FlowId implements Comparable<FlowId>{
         this.isVirtualFlowId = isVirtualFlowId;
     }
 
+    public void set(Integer value) {
+        this.value = value;
+    }
+    
     public void set(String valueStr) {
         this.value = Integer.valueOf(valueStr);
     }

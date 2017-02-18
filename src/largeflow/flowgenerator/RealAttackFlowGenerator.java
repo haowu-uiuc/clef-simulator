@@ -310,6 +310,10 @@ public class RealAttackFlowGenerator extends UniAttackRateFlowGenerator {
 		attackFlowGenerator.setAttackRate(attackFlowRate);
 	}
 	
+	public void setNumOfAttFlows(int numOfAttFlows) {
+	    attackFlowGenerator.setNumOfLargeFlows(numOfAttFlows);
+	}
+	
 	public Integer getNumOfAttFlows() throws Exception {
 	    return attackFlowGenerator.getNumOfFlows();
 	}

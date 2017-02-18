@@ -249,14 +249,29 @@ public class MaxPacketLossDamageEvaluator {
         logger.flush();
 
         for (int round = startRound; round < numOfRepeatRounds + startRound; round++) {
-            flowGenerator.reset();  // re-generate real traffic in each round.
-
+            flowGenerator.reset();  // re-generate real/legitimate traffic in each round.
+            // without reset(), the flowGenerator will reuse the legitimate flows generated
+            // in the last time.
+            
+            int numOfLargeFlows = flowGenerator.getNumOfAttFlows();
+            Map<String, Damage> baselineDamageMap = new HashMap<>();
+            
             int i = 0;
-            for (int atkRateIndex = 0; atkRateIndex < atkRateList.size(); atkRateIndex++) {
-                int atkRate = atkRateList.get(atkRateIndex);
-                
-                flowGenerator.setAttackRate(atkRate);
-                flowGenerator.generateFlows();
+            for (int atkRateIndex = -1; atkRateIndex < atkRateList.size(); atkRateIndex++) {
+                int atkRate = 0;
+                if (atkRateIndex == -1) {
+                    // calculate the baseline with zero attack flows
+                    // see the traffic dropped because of congestion of legitimate traffic
+                    flowGenerator.setNumOfAttFlows(0);
+                    flowGenerator.setAttackRate(atkRate);
+                    flowGenerator.generateFlows();
+                } else {
+                    // restore the number of large flows
+                    flowGenerator.setNumOfAttFlows(numOfLargeFlows);
+                    atkRate = atkRateList.get(atkRateIndex);
+                    flowGenerator.setAttackRate(atkRate);
+                    flowGenerator.generateFlows();
+                }
                 
                 PacketReader packetReader = PacketReaderFactory
                         .getPacketReader(flowGenerator.getOutputFile());
@@ -265,8 +280,10 @@ public class MaxPacketLossDamageEvaluator {
                 
                 // create subloggers
                 Map<String, SubLogger> subLoggerMap = new HashMap<>();
-                for (Router router : routersToEvalList) {
-                    subLoggerMap.put(router.name(), logger.getSubLogger(router, round, atkRate));
+                if (atkRateIndex != -1) {
+                    for (Router router : routersToEvalList) {
+                        subLoggerMap.put(router.name(), logger.getSubLogger(router, round, atkRate));
+                    }
                 }
                 
                 for (int counterIndex = 0; counterIndex < numOfCounterList.size(); counterIndex++) {
@@ -284,6 +301,19 @@ public class MaxPacketLossDamageEvaluator {
                             // init non admit flow set
                             nonAdmittedFlowsMap.put(router.name(),
                                     new HashSet<>(nonAdmittedFlows));
+                            
+                            Set<FlowId> set = nonAdmittedFlowsMap.get(router.name());
+                            int delta = numOfLargeFlows - flowGenerator.getNumOfAttFlows();
+                            for (int k = 0; k < delta; k++) {
+                                // TODO: for baseline round, we remove flows from
+                                // the nonAdmittedFlows
+                                set.remove(set.iterator().next());
+                            }
+                            if (delta > 0) {
+                                for (FlowId fid: set) {
+                                    fid.set(fid.getIntegerValue() - delta);
+                                }
+                            }
                         }
                         
                         // reset routers and base detector
@@ -356,22 +386,32 @@ public class MaxPacketLossDamageEvaluator {
                                     blockedRealTrafficMap.get(router.name()),
                                     router.getTotalOutboundCapacity());
                             
-                            // log blacklist into different files for differen {round, atkRate, # of counters}
-                            logger.logRouterBlackList(router, atkRate, numOfCounters, round, baseDetector);
-                            
-                            // log the traffic and damage into different files for different {round, atkRate}
-                            subLoggerMap.get(router.name()).logDamageAndTraffic(router,
-                                    atkRate,
-                                    numOfCounters,
-                                    round,
-                                    preQdAttackResvMap.get(router.name()),
-                                    preQdRealTrafficMap.get(router.name()),
-                                    postQdAttackTrafficMap.get(router.name()),
-                                    postQdRealTrafficMap.get(router.name()),
-                                    blockedRealTrafficMap.get(router.name()),
-                                    router.getTotalOutboundCapacity(),
-                                    damage);
-                            subLoggerMap.get(router.name()).flush();
+                            if (atkRateIndex == -1) {
+                                // for baseline
+                                baselineDamageMap.put(router.name(), damage);
+                            } else {
+                                // log blacklist into different files for differen {round, atkRate, # of counters}
+                                logger.logRouterBlackList(router, atkRate, numOfCounters, round, baseDetector);
+                                
+                                // set baseline damage
+                                damage.baseline_damage = 
+                                        baselineDamageMap.get(router.name()).QD_drop_damage
+                                        - baselineDamageMap.get(router.name()).FP_damage;
+                                
+                                // log the traffic and damage into different files for different {round, atkRate}
+                                subLoggerMap.get(router.name()).logDamageAndTraffic(router,
+                                        atkRate,
+                                        numOfCounters,
+                                        round,
+                                        preQdAttackResvMap.get(router.name()),
+                                        preQdRealTrafficMap.get(router.name()),
+                                        postQdAttackTrafficMap.get(router.name()),
+                                        postQdRealTrafficMap.get(router.name()),
+                                        blockedRealTrafficMap.get(router.name()),
+                                        router.getTotalOutboundCapacity(),
+                                        damage);
+                                subLoggerMap.get(router.name()).flush();
+                            }
                             
                             /*
                             // log the traffic into one file
@@ -401,13 +441,20 @@ public class MaxPacketLossDamageEvaluator {
                     } catch (Exception e) {
                         System.out.println(e.toString());
                     }
+                    
+                    // if this is for baseline, we only need to test one round:
+                    if (atkRateIndex == -1) {
+                        break;
+                    }
                 }
                 
                 // close and clear subloggers
-                for (Router router : routersToEvalList) {
-                    subLoggerMap.get(router.name()).close();
+                if (atkRateIndex != -1) {
+                    for (Router router : routersToEvalList) {
+                        subLoggerMap.get(router.name()).close();
+                    }
+                    subLoggerMap.clear();
                 }
-                subLoggerMap.clear();
                 
                 System.gc();
             }

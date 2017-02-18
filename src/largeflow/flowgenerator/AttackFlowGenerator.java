@@ -93,7 +93,7 @@ public abstract class AttackFlowGenerator extends FlowGenerator {
 	}
 
 	public void setNumOfLargeFlows(Integer numOfLargeFlows) {
-		this.numOfSmallFlows = numOfLargeFlows;
+		this.numOfLargeFlows = numOfLargeFlows;
 	}
 
 	public void setLargeFlowRate(Integer largeFlowRate) {

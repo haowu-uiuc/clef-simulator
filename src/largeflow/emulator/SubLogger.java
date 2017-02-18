@@ -94,7 +94,8 @@ public class SubLogger implements Closeable, Flushable {
                 String.valueOf(damage.totalDamage),
                 String.valueOf(damage.BE_damage),
                 String.valueOf(damage.FP_damage),
-                String.valueOf(damage.QD_drop_damage));
+                String.valueOf(damage.QD_drop_damage),
+                String.valueOf(damage.baseline_damage));
         writer.write(String.join("\t", valueList) + "\n");
     }
 
