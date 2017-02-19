@@ -80,8 +80,8 @@ public class PacketLossDamageCalculator {
             }
         }
         */
-        System.out.println("damage_priority = " + damage_Priority);
-        System.out.println("FN = " + damage.FN);
+        // System.out.println("damage_priority = " + damage_Priority);
+        // System.out.println("FN = " + damage.FN);
         
         damage.totalDamage = (double) (damage_Priority + damage_BE);
         if (damage.totalDamage < 0) {

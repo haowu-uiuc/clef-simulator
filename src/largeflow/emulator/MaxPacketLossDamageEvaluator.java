@@ -346,8 +346,8 @@ public class MaxPacketLossDamageEvaluator {
                                     FlowId fid = nonAdFlows.iterator().next();
                                     nonAdFlows.remove(fid);
                                     moreToAdmit--;
-                                    System.out.println(router.name() + " admit flow " 
-                                            + fid + " at " + packet.time);
+                                    // System.out.println(router.name() + " admit flow " 
+                                    //         + fid + " at " + packet.time);
                                 }
                                 
                                 if (! flowGenerator.isLargeFlow(packet.flowId)) {
