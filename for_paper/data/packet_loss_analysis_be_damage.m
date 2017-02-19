@@ -1,13 +1,16 @@
 clear all, close all, clc;
 
 loadDataFromFile = 0;
+exp_dir = 'exp_logger';
+exp_dir = 'exp_logger_full_link';
+
 expNames = {'for_paper_flat_20161026', 'for_paper_burst_1_20161026',...
     'for_paper_burst_2_20161026', 'for_paper_burst_4_20161026',...
     'for_paper_burst_3_20161026'};
 expNames = {'for_paper_flat_20161026',...
     'for_paper_burst_4_20161026', 'for_paper_burst_2_20161026',...
     'for_paper_burst_1_20161026', 'for_paper_burst_5_20161026'};
-expNames = {'full_link_flat_20170208'}
+expNames = {'full_link_flat_20170208'};
 % expNames = {'for_paper_flat_20161026'};
 % thetas = [1.0, 0.1, 0.2, 0.5, 0.8];
 % thetas = [1.0, 0.1, 0.25, 0.5, 0.75];
@@ -59,9 +62,9 @@ for i = 1:length(routerNameList)
     routerLabel = routerLabelList{i};
     
     if loadDataFromFile
-        load(['./exp_logger/', expName, '/matlab_data/', routerName, '.mat']);
+        load(['./', exp_dir,'/', expName, '/matlab_data/', routerName, '.mat']);
     else
-        fid= fopen(['./exp_logger/', expName, '/total_', routerName, '_traffic_damage.txt']);
+        fid= fopen(['./', exp_dir,'/', expName, '/total_', routerName, '_traffic_damage.txt']);
 
         fgetl(fid); %skip the first title line 
         tline = fgetl(fid);
@@ -75,6 +78,7 @@ for i = 1:length(routerNameList)
         be_damageMatrix = [];
         fp_damageMatrix = [];
         qd_damageMatrix = [];
+        baseline_damageMatrix = [];
         FPMatrix = [];
         TPMatrix = [];
         FNMatrix = [];
@@ -97,6 +101,7 @@ for i = 1:length(routerNameList)
             be_damage = str2num(strCells{15});
             fp_damage = str2num(strCells{16});
             qd_damage = str2num(strCells{17});
+            baseline_damage = str2num(strCells{18});
             
             
             % filter out rate out of the range [minRate, maxRate]
@@ -126,6 +131,7 @@ for i = 1:length(routerNameList)
                 be_damageMatrix(curRateIndex, curCounterIndex) = be_damage;
                 fp_damageMatrix(curRateIndex, curCounterIndex) = fp_damage;
                 qd_damageMatrix(curRateIndex, curCounterIndex) = qd_damage;
+                baseline_damageMatrix(curRateIndex, curCounterIndex) = baseline_damage;
                 FPMatrix(curRateIndex, curCounterIndex) = FP;
                 TPMatrix(curRateIndex, curCounterIndex) = TP;
                 FNMatrix(curRateIndex, curCounterIndex) = FN;
@@ -138,6 +144,8 @@ for i = 1:length(routerNameList)
                     fp_damageMatrix(curRateIndex, curCounterIndex) + fp_damage;
                 qd_damageMatrix(curRateIndex, curCounterIndex) = ...
                     qd_damageMatrix(curRateIndex, curCounterIndex) + qd_damage;
+                baseline_damageMatrix(curRateIndex, curCounterIndex) = ...
+                    baseline_damageMatrix(curRateIndex, curCounterIndex) + baseline_damage;
                 FPMatrix(curRateIndex, curCounterIndex) = ...
                     FPMatrix(curRateIndex, curCounterIndex) + FP;
                 TPMatrix(curRateIndex, curCounterIndex) = ...
@@ -153,6 +161,7 @@ for i = 1:length(routerNameList)
         be_damageMatrix = be_damageMatrix ./ (round + 1 - start_round);
         fp_damageMatrix = fp_damageMatrix ./ (round + 1 - start_round);
         qd_damageMatrix = qd_damageMatrix ./ (round + 1 - start_round);
+        baseline_damageMatrix = baseline_damageMatrix ./ (round + 1 - start_round);
         FPMatrix = FPMatrix ./ (round + 1);
         TPMatrix = TPMatrix ./ (round + 1);
         FNMatrix = FNMatrix ./ (round + 1);
@@ -168,7 +177,9 @@ for i = 1:length(routerNameList)
             'counterToIndexMap', 'rateToIndexMap');
     end
     
-    total_damageMatrix = be_damageMatrix + qd_damageMatrix; %%%%% a hack %%%%%
+%     total_damageMatrix = be_damageMatrix + qd_damageMatrix; %%%%% a hack %%%%%
+    % if we don't consider be damage:
+    total_damageMatrix = qd_damageMatrix + fp_damageMatrix - baseline_damageMatrix;
     total_damageMatrix_list{i} = total_damageMatrix;
     FNMatrix_list{i} = FNMatrix;
     

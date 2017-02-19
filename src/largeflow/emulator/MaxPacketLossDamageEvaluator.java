@@ -395,8 +395,7 @@ public class MaxPacketLossDamageEvaluator {
                                 
                                 // set baseline damage
                                 damage.baseline_damage = 
-                                        baselineDamageMap.get(router.name()).QD_drop_damage
-                                        - baselineDamageMap.get(router.name()).FP_damage;
+                                        baselineDamageMap.get(router.name()).QD_drop_damage;
                                 
                                 // log the traffic and damage into different files for different {round, atkRate}
                                 subLoggerMap.get(router.name()).logDamageAndTraffic(router,
