@@ -10,7 +10,10 @@ expNames = {'for_paper_flat_20161026', 'for_paper_burst_1_20161026',...
 expNames = {'for_paper_flat_20161026',...
     'for_paper_burst_4_20161026', 'for_paper_burst_2_20161026',...
     'for_paper_burst_1_20161026', 'for_paper_burst_5_20161026'};
-expNames = {'full_link_flat_20170208'};
+expNames = {'full_link_flat_20170208',...
+    'full_link_burst_4_20170208', 'full_link_burst_2_20170208',...
+    'full_link_burst_1_20170208', 'full_link_burst_5_20170208'};
+% expNames = {'full_link_burst_1_20170208'};
 % expNames = {'for_paper_flat_20161026'};
 % thetas = [1.0, 0.1, 0.2, 0.5, 0.8];
 % thetas = [1.0, 0.1, 0.25, 0.5, 0.75];
@@ -179,7 +182,8 @@ for i = 1:length(routerNameList)
     
 %     total_damageMatrix = be_damageMatrix + qd_damageMatrix; %%%%% a hack %%%%%
     % if we don't consider be damage:
-    total_damageMatrix = qd_damageMatrix + fp_damageMatrix - baseline_damageMatrix;
+    z = zeros(size(total_damageMatrix));
+    total_damageMatrix = max(qd_damageMatrix + fp_damageMatrix - baseline_damageMatrix, z);
     total_damageMatrix_list{i} = total_damageMatrix;
     FNMatrix_list{i} = FNMatrix;
     
