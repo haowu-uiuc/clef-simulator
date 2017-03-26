@@ -170,7 +170,7 @@ for i = 1:length(routerNameList)
         FNMatrix = FNMatrix ./ (round + 1);
 
         
-        data_dir = ['./exp_logger/', expName, '/matlab_data/'];
+        data_dir = ['./', exp_dir, '/', expName, '/matlab_data/'];
         mkdir(data_dir);
         save([data_dir, routerName, '.mat'], ...
             'total_damageMatrix', 'be_damageMatrix', ...
@@ -393,7 +393,7 @@ end
 
 
 % draw figures across for efd-eardet
-ee_fig_dir = ['./exp_logger/fig/'];
+ee_fig_dir = ['./', exp_dir, '/fig/'];
 mkdir(ee_fig_dir);
 % fig_num_counters = [40, 100, 200, 400];
 colors = {'b-*', 'r-x', 'm-v', 'k-^', 'g-d', 'c-o', 'y-+'};
