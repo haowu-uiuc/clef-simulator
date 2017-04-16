@@ -8,7 +8,9 @@ class ClefEnv:
     MIN_T = 1   # T is the period of a level in RLFD
     MAX_T = 5
     T_LIST = range(MIN_T, MAX_T + 1, 1)
-    T_LIST = [1, 1, 1, 1, 2, 2, 2, 3, 3, 5, 7]
+    T_LIST = [1, 1, 1, 1, 2, 2, 2, 3, 3, 7, 10]
+    NEG_REWARD = -1 * max(T_LIST) * NUM_LEVELS
+    NEG_REWARD_PROB = 1.0
     # MAX_T = 10 * NUM_LEVELS
     # NUM_COUNTER = 100
     # THRESHOLD = 1
@@ -20,7 +22,18 @@ class ClefEnv:
     # 0 -> send no traffic in a time slot
     ACTION_SPACE = [0, 1]
 
-    def __init__(self):
+    def __init__(self, config=None):
+        if config is not None:
+            if "NUM_TIME_SLOTS" in config:
+                self.NUM_TIME_SLOTS = config["NUM_TIME_SLOTS"]
+            if "NUM_LEVELS" in config:
+                self.NUM_LEVELS = config["NUM_LEVELS"]
+            if "T_LIST" in config:
+                self.T_LIST = config["T_LIST"]
+            if "NEG_REWARD" in config:
+                self.NEG_REWARD = config["NEG_REWARD"]
+            if "NEG_REWARD_PROB" in config:
+                self.NEG_REWARD_PROB = config["NEG_REWARD_PROB"]
         self.reset()
 
     def reset(self):
@@ -78,7 +91,8 @@ class ClefEnv:
 
             if np.random.rand(1) <= detect_prob:
                 d = True
-                r = -1000000  # the step that caused detection
+                if np.random.rand(1) <= self.NEG_REWARD_PROB:
+                    r = self.NEG_REWARD
 
             # if prob_before_last_level == 1 and action == 0:
             #     r = 1   # the step that avoid detection

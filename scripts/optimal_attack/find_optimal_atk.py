@@ -3,14 +3,28 @@ from clef_env import ClefEnv
 import numpy as np
 import tensorflow as tf
 import os
+import sys
+import json
 
 
 class QNet:
-    def __init__(self, input_size, num_actions):
+    def __init__(self, input_size, num_actions, config=None):
+        self.exp_name = "test_exp"
         self.input_size = input_size
         self.num_actions = num_actions
+        self.learning_rate = 0.001
         self.gamma = 0.99
         self.e = 0.1
+
+        if config is not None:
+            if "INPUT_SIZE" in config:
+                self.input_size = config["INPUT_SIZE"]
+            if "EXP_NAME" in config:
+                self.exp_name = config["EXP_NAME"]
+            if "LEARNING_RATE" in config:
+                self.learning_rate = config["LEARNING_RATE"]
+            if "DISCOUNT_FACTOR" in config:
+                self.gamma = config["DISCOUNT_FACTOR"]
 
         tf.reset_default_graph()
         # These lines establish the feed-forward part of
@@ -56,7 +70,7 @@ class QNet:
 
         # self.trainer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
         self.trainer = tf.train.AdamOptimizer(
-            learning_rate=0.001, epsilon=1e-8)
+            learning_rate=self.learning_rate, epsilon=1e-8)
         self.updateModel = self.trainer.minimize(self.loss)
 
         # Initialize table with all zeros
@@ -72,6 +86,43 @@ class QNet:
         for t in reversed(xrange(0, r.size)):
             running_add = running_add * self.gamma + r[t]
             discounted_r[t] = running_add
+        # size the rewards to be unit normal
+        # (helps control the gradient estimator variance)
+        discounted_r -= np.mean(discounted_r)
+        discounted_r /= np.std(discounted_r)
+        return discounted_r
+
+    def _discount_rewards_sw(self, r, ws):
+        """ take 1D float array of rewards and compute discounted reward
+        only consider the estimated reword for the next ws-1 slots"""
+        discounted_r = np.zeros_like(r)
+        ws_discount = np.power(self.gamma, ws)
+
+        running_count = 0
+        running_add = 0
+        for t in reversed(xrange(0, r.size)):
+            running_add = running_add * self.gamma + r[t]
+            running_count += 1
+            if running_count == ws + 1:
+                # remove the head of the queue out of the window
+                # with the discount added on it
+                running_add -= r[t + ws] * ws_discount
+                running_count -= 1
+            discounted_r[t] = running_add / ws
+
+        # for t in reversed(xrange(0, r.size)):
+        #     std = 0
+        #     mean = 0
+        #     if t - ws + 1 >= 0:
+        #         std = np.std(discounted_r[t - ws + 1:t + 1])
+        #         mean = np.mean(discounted_r[t - ws + 1:t + 1])
+        #     else:
+        #         std = np.std(discounted_r[:t + 1])
+        #         mean = np.mean(discounted_r[:t + 1])
+        #     discounted_r[t] -= mean
+        #     if std > 0:
+        #         discounted_r[t] /= std
+
         return discounted_r
 
     def _generate_input(self, t, status):
@@ -152,14 +203,12 @@ class QNet:
                     epr = np.vstack(drs)
 
                     # compute the discounted reward backwards through time
-                    discounted_epr = self._discount_rewards(epr)
+                    # discounted_epr = self._discount_rewards(epr)
+                    discounted_epr = self._discount_rewards_sw(
+                        epr, self.input_size)
+
                     # if i % batch_to_print == 0:
                     #     print discounted_epr
-                    # size the rewards to be unit normal
-                    # (helps control the gradient estimator variance)
-                    discounted_epr -= np.mean(discounted_epr)
-                    discounted_epr /= np.std(discounted_epr)
-
                     self.sess.run(self.updateModel, feed_dict={
                         self.inputs: epx, self.input_y: epy,
                         self.advantages: discounted_epr})
@@ -175,9 +224,10 @@ class QNet:
                 tsum_100 = 0
 
         # save the model
-        if not os.path.exists('./checkpoints'):
-            os.makedirs('./checkpoints')
-        self.saver.save(self.sess, './checkpoints/clef_optimal_atk')
+        model_dir = './' + self.exp_name + '_model'
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        self.saver.save(self.sess, model_dir + '/' + self.exp_name)
 
         print "Final Q-Table Values"
         print "W1 = " + str(self.sess.run(self.W1))
@@ -220,11 +270,30 @@ class QNet:
 
 
 if __name__ == '__main__':
-    env = ClefEnv()
+    NUM_EPISODES = 10000
+
+    # read config file:
+    # 0. EXP_NAME
+    # 1. T_LIST
+    # 2. NUM_LEVEL
+    # 3. NUM_TIME_SLOTS
+    # 4. NEG_REWARD
+    # 5. INPUT_SIZE
+    # 6. NUM_EPISODES
+    config = None   # using default setting
+    if len(sys.argv) == 3 and sys.argv[1] == "--config":
+        with open(sys.argv[2]) as config_file:
+            config = json.load(config_file)
+
+    if config is not None:
+        if "NUM_EPISODES" in config:
+            NUM_EPISODES = config["NUM_EPISODES"]
+
+    env = ClefEnv(config=config)
     num_actions = len(env.get_action_space())
 
-    qNet = QNet(40, num_actions)
-    qNet.train(env, num_episodes=10000)
+    qNet = QNet(40, num_actions, config=config)
+    qNet.train(env, num_episodes=NUM_EPISODES)
     # qNet.test(env)
 
     # total_r = 0
