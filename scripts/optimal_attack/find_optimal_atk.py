@@ -108,7 +108,7 @@ class QNet:
                 # with the discount added on it
                 running_add -= r[t + ws] * ws_discount
                 running_count -= 1
-            discounted_r[t] = running_add / ws
+            discounted_r[t] = running_add
 
         # for t in reversed(xrange(0, r.size)):
         #     std = 0
@@ -140,6 +140,7 @@ class QNet:
         rsum_100 = 0
         oversent_100 = 0
         tsum_100 = 0
+        ave_rate_100 = 0
         batch_to_print = 100
 
         for i in range(num_episodes):
@@ -198,6 +199,8 @@ class QNet:
 
                 if done:
                     tsum_100 += t
+                    ave_rate_100 += float(oversent) / (t + 1)
+
                     epx = np.vstack(xs)
                     epy = np.vstack(ys)
                     epr = np.vstack(drs)
@@ -219,9 +222,12 @@ class QNet:
                     + str(oversent_100 / batch_to_print)
                 print "Average life time in an episode:"\
                     + str(tsum_100 / batch_to_print)
+                print "Average rate in life time in an episode:"\
+                    + str(ave_rate_100 / batch_to_print)
                 rsum_100 = 0
                 oversent_100 = 0
                 tsum_100 = 0
+                ave_rate_100 = 0
 
         # save the model
         model_dir = './' + self.exp_name + '_model'
