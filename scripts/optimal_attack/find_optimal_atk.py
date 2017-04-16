@@ -142,6 +142,7 @@ class QNet:
         tsum_100 = 0
         ave_rate_100 = 0
         batch_to_print = 100
+        batch_to_print_detail = 1000
 
         for i in range(num_episodes):
             xs, drs, ys = [], [], []
@@ -185,7 +186,7 @@ class QNet:
                 oversent += action
                 oversent_100 += action
 
-                if i % batch_to_print == 0:
+                if i % batch_to_print_detail == 0:
                     print """{ts}. [{action}], r = {reward}, \
                             prob_to_sent = {prob}""".format(
                         ts=t,
@@ -218,6 +219,7 @@ class QNet:
                     break
 
             if i % batch_to_print == 0:
+                print "----Episode %d----" % i
                 print "Average damage in an episode:"\
                     + str(oversent_100 / batch_to_print)
                 print "Average life time in an episode:"\
