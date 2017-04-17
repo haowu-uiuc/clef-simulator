@@ -5,10 +5,9 @@ import numpy as np
 class ClefEnv:
     NUM_TIME_SLOTS = 1000
     NUM_LEVELS = 4  # number of levels in one RLFD cycle
-    MIN_T = 1   # T is the period of a level in RLFD
-    MAX_T = 5
-    T_LIST = range(MIN_T, MAX_T + 1, 1)
-    T_LIST = [1, 1, 1, 1, 2, 2, 2, 3, 3, 7, 10]
+    # T is the period of a level in RLFD
+    T_LIST = [1, 2, 3, 7, 10]
+    P_LIST = [4. / 11, 3. / 11, 2. / 11, 1. / 11, 1. / 11]
     NEG_REWARD = -1 * max(T_LIST) * NUM_LEVELS
     NEG_REWARD_PROB = 1.0
     # MAX_T = 10 * NUM_LEVELS
@@ -30,10 +29,23 @@ class ClefEnv:
                 self.NUM_LEVELS = config["NUM_LEVELS"]
             if "T_LIST" in config:
                 self.T_LIST = config["T_LIST"]
+            if "P_LIST" in config:
+                self.P_LIST = config["P_LIST"]
             if "NEG_REWARD" in config:
                 self.NEG_REWARD = config["NEG_REWARD"]
             if "NEG_REWARD_PROB" in config:
                 self.NEG_REWARD_PROB = config["NEG_REWARD_PROB"]
+
+            if len(self.P_LIST) != len(self.T_LIST):
+                print "size of P_LIST != size of T_LIST!"
+                exit()
+
+        self.P_ACCU_LIST = list()
+        p_accu = 0.
+        for i in range(len(self.P_LIST)):
+            p_accu += self.P_LIST[i]
+            self.P_ACCU_LIST.append(p_accu)
+
         self.reset()
 
     def reset(self):
@@ -49,7 +61,12 @@ class ClefEnv:
         return self.ACTION_SPACE
 
     def _pick_T_randomly(self):
-        key_idx = np.random.randint(len(self.T_LIST))
+        rand = np.random.rand()
+        key_idx = len(self.P_ACCU_LIST) - 1
+        for i in range(len(self.P_ACCU_LIST)):
+            if rand < self.P_ACCU_LIST[i]:
+                key_idx = i
+                break
         return self.T_LIST[key_idx]
 
     def step(self, action_idx):
@@ -108,3 +125,24 @@ class ClefEnv:
 
     def render(self):
         print "action = %d" % self.last_action
+
+
+if __name__ == '__main__':
+    # for testing ClefEnv only
+    import sys
+    import json
+    config = None   # using default setting
+    if len(sys.argv) == 3 and sys.argv[1] == "--config":
+        with open(sys.argv[2]) as config_file:
+            config = json.load(config_file)
+    env = ClefEnv(config=config)
+
+    d = dict()
+    num_T = len(env.T_LIST)
+    for i in range(num_T):
+        d[env.T_LIST[i]] = 0
+
+    for _ in range(10000):
+        T = env._pick_T_randomly()
+        d[T] += 1
+    print "T frequency = " + str(d)
