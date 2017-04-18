@@ -29,8 +29,8 @@ class QNet:
         tf.reset_default_graph()
         # These lines establish the feed-forward part of
         # the network used to choose actions
-        N = input_size
-        H = 2 * input_size
+        N = self.input_size
+        H = 2 * self.input_size
         M = num_actions
         self.inputs = tf.placeholder(shape=[None, N], dtype=tf.float32)
         self.W1 = tf.Variable(
@@ -73,7 +73,6 @@ class QNet:
             learning_rate=self.learning_rate, epsilon=1e-8)
         self.updateModel = self.trainer.minimize(self.loss)
 
-        # Initialize table with all zeros
         init = tf.initialize_all_variables()
         self.sess = tf.Session()
         self.sess.run(init)
@@ -127,9 +126,9 @@ class QNet:
 
     def _generate_input(self, t, status):
         if t == 0:
-            return [[0] * self.input_size]
+            return [[0.5] * self.input_size]
         if t > 0 and t < self.input_size:
-            input_val = [0] * self.input_size
+            input_val = [0.5] * self.input_size
             input_val[self.input_size - t:] = status[:t]
         else:
             input_val = status[t - self.input_size:t]
@@ -237,7 +236,7 @@ class QNet:
             os.makedirs(model_dir)
         self.saver.save(self.sess, model_dir + '/' + self.exp_name)
 
-        print "Final Q-Table Values"
+        print "Final Model:"
         print "W1 = " + str(self.sess.run(self.W1))
         print "b1 = " + str(self.sess.run(self.b1))
         print "W2 = " + str(self.sess.run(self.W2))
@@ -302,6 +301,7 @@ if __name__ == '__main__':
 
     qNet = QNet(40, num_actions, config=config)
     qNet.train(env, num_episodes=NUM_EPISODES)
+    env.save_qnet_model()
     # qNet.test(env)
 
     # total_r = 0
