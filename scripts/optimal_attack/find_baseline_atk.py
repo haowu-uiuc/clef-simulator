@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 T_LIST = range(1, 101, 5)
-T_LIST = range(1, 101)
+T_LIST = range(1, 11)
 NUM_LEVELS = 4
 
 
@@ -50,13 +50,14 @@ if __name__ == '__main__':
 
     max_T = max(T_LIST)
     max_rate = 0.
+    max_traffic = []
     rate_sum = 0.
     tmp_traffic_sum = 0
     for k in range(1):
         traffic = [0] * (max_T * NUM_LEVELS * 10)
 
         for i in range(len(traffic)):
-            if np.random.uniform() > 0. or i >= max_T * NUM_LEVELS:
+            if np.random.uniform() > 0.0:
                 traffic[i] = 1
                 tmp_traffic_sum += 1
                 # try all T and sliding window to see whether it is detected
@@ -67,9 +68,12 @@ if __name__ == '__main__':
                         break
 
         rate = float(tmp_traffic_sum) / len(traffic)
-        max_rate = max(rate, max_rate)
+        if max_rate < rate:
+            max_traffic = traffic
+            max_rate = rate
         tmp_traffic_sum = 0
         rate_sum += rate
         print str(k) + ":\tave rate = " + str(rate_sum / (k + 1))
-        render_traffic(traffic)
+        # render_traffic(traffic)
+    render_traffic(max_traffic)
     print "max rate = " + str(max_rate)

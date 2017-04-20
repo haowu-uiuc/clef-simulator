@@ -174,9 +174,11 @@ class ClefEnv:
 
 class ClefQnet:
     def __init__(self, input_size, num_actions, config=None):
-        self.learning_rate = 0.001
+        self.learning_rate = 0.00001
         self.gamma = 0.99
+        self.e = 0.2
         self.input_size = input_size
+        self.num_actions = num_actions
         self.exp_name = "test_exp"
         self.batch_to_print_detail = 1000
         self.batch_idx = 0
@@ -185,9 +187,9 @@ class ClefQnet:
             if "EXP_NAME" in config:
                 self.exp_name = config["EXP_NAME"]
 
-        N = input_size
-        H = 2 * input_size
-        T = num_actions
+        N = self.input_size
+        H = 2 * self.input_size
+        T = self.num_actions
         self.inputs = tf.placeholder(shape=[None, N], dtype=tf.float32)
         self.W1 = tf.Variable(
             tf.truncated_normal([N, H], stddev=0.1), name='W1')
@@ -265,11 +267,11 @@ class ClefQnet:
             running_reward = self.gamma * running_reward + self.buffer[i][2]
             self.buffer[i][2] = running_reward
         self.buffer = np.array(self.buffer)
-        if len(self.buffer[:, 2]) > 1:
-            self.buffer[:, 2] -= np.mean(self.buffer[:, 2])
-        std = np.std(self.buffer[:, 2])
-        if std > 0:
-            self.buffer[:, 2] /= std
+        # if len(self.buffer[:, 2]) > 1:
+        #     self.buffer[:, 2] -= np.mean(self.buffer[:, 2])
+        # std = np.std(self.buffer[:, 2])
+        # if std > 0:
+        #     self.buffer[:, 2] /= std
         inputs = np.vstack(self.buffer[:, 0])
         actions = self.buffer[:, 1]
         rewards = self.buffer[:, 2]
@@ -300,6 +302,9 @@ class ClefQnet:
             if rand < prob_accu:
                 T_idx = i
                 break
+        if np.random.uniform() < self.e:
+            # still have a chance to try other T
+            T_idx = np.random.randint(self.num_actions)
         # print "t = " + str(t) + " | s = " + str(x)
         if self.batch_idx % self.batch_to_print_detail == 0:
             print "QNet select T idx = " + str(T_idx) +\
