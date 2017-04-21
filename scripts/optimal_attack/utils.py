@@ -9,33 +9,36 @@ class ValidChecker:
         if period is not None:
             start = len(traffic) - period
         for t in range(start, len(traffic)):
-            if self.is_detectable_at_t(traffic, t):
-                return True
+            for T in self.Ts:
+                if self._detect_at_t_by_T(traffic, T, t):
+                    return True
         return False
 
     def is_detectable_at_t(self, traffic, t):
+        """check whether the traffic at t can cause a detection
+        in the greedy algorithm"""
         for T in self.Ts:
-            if self._is_detectable_by_T(traffic, T, t):
-                return True
+            for tx in range(t, t + T):
+                if self._detect_at_t_by_T(traffic, T, tx):
+                    return True
         return False
 
-    def _is_detectable_by_T(self, traffic, T, t):
-        for start in range(
-                t - T * self.num_levels + 1,
-                t - T * (self.num_levels - 1) + 1):
-            probs = [0] * self.num_levels
-            for i in range(start, start + self.num_levels * T):
-                if i < 0:
-                    continue
-                if i >= len(traffic):
-                    break
-                if traffic[i] == 1:
-                    probs[(i - start) / T] = 1
-                if (i - start + 1) % T == 0 and probs[(i - start) / T] == 0:
-                    # (start, T) cannot detect this traffic
-                    break
-            if sum(probs) == self.num_levels:
-                return True
+    def _detect_at_t_by_T(self, traffic, T, t):
+        """detect traffic with detection window ending at t"""
+        start = t - T * self.num_levels + 1
+        probs = [0] * self.num_levels
+        for i in range(start, t + 1):
+            if i < 0:
+                continue
+            if i >= len(traffic):
+                break
+            if traffic[i] == 1:
+                probs[(i - start) / T] = 1
+            if (i - start + 1) % T == 0 and probs[(i - start) / T] == 0:
+                # (start, T) cannot detect this traffic
+                break
+        if sum(probs) == self.num_levels:
+            return True
         return False
 
 

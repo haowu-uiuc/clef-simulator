@@ -7,6 +7,7 @@ from utils import render_traffic
 T_LIST = range(1, 101, 5)
 T_LIST = range(1, 3)
 NUM_LEVELS = 4
+NUM_DET_CYCLE = 10
 
 if __name__ == '__main__':
     config = None   # using default setting
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     rate_sum = 0.
     tmp_traffic_sum = 0
     for k in range(1):
-        traffic = [0] * (max_T * NUM_LEVELS * 4)
+        traffic = [0] * (max_T * NUM_LEVELS * NUM_DET_CYCLE)
 
         for i in range(len(traffic)):
             if np.random.uniform() > 0.0:
