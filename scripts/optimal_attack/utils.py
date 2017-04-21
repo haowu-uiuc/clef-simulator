@@ -4,7 +4,16 @@ class ValidChecker:
         self.Ts = Ts
         self.num_levels = num_levels
 
-    def is_detectable(self, traffic, t):
+    def is_detectable(self, traffic, period=None):
+        start = 0
+        if period is not None:
+            start = len(traffic) - period
+        for t in range(start, len(traffic)):
+            if self.is_detectable_at_t(traffic, t):
+                return True
+        return False
+
+    def is_detectable_at_t(self, traffic, t):
         for T in self.Ts:
             if self._is_detectable_by_T(traffic, T, t):
                 return True

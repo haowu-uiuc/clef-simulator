@@ -35,7 +35,7 @@ if __name__ == '__main__':
                 traffic[i] = 1
                 tmp_traffic_sum += 1
                 # try all T and sliding window to see whether it is detected
-                if checker.is_detectable(traffic, i):
+                if checker.is_detectable_at_t(traffic, i):
                     traffic[i] = 0
                     tmp_traffic_sum -= 1
 
