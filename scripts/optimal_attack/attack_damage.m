@@ -10,3 +10,20 @@ damage = oversent - TH .* life_time;
 
 figure;
 plot(rate, damage, '*');
+
+
+% draw brute froce result
+% data = load('./bf_result.txt');
+data = load('./result_debug_exp.txt');
+
+figure;
+plot(data(:,1), data(:,2), '*-');
+title('max damage');
+xlabel('rate');
+ylabel('damage');
+
+figure;
+plot(data(:,1), data(:,3), '*-');
+title('life time');
+xlabel('rate');
+ylabel('life time');
