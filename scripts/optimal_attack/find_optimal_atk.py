@@ -8,13 +8,14 @@ import json
 
 
 class QNet:
-    def __init__(self, input_size, num_actions, config=None):
+    def __init__(self, input_size, num_actions, config=None, output_dir='.'):
         self.exp_name = "test_exp"
         self.input_size = input_size
         self.num_actions = num_actions
         self.learning_rate = 0.001
         self.gamma = 0.99
         self.e = 0.1
+        self.output_dir = output_dir
 
         if config is not None:
             if "INPUT_SIZE" in config:
@@ -25,6 +26,8 @@ class QNet:
                 self.learning_rate = config["LEARNING_RATE"]
             if "DISCOUNT_FACTOR" in config:
                 self.gamma = config["DISCOUNT_FACTOR"]
+
+        self.model_dir = self.output_dir + '/' + self.exp_name + '_model'
 
         tf.reset_default_graph()
         # These lines establish the feed-forward part of
@@ -134,7 +137,7 @@ class QNet:
             input_val = status[t - self.input_size:t]
         return [input_val]
 
-    def train(self, env, num_episodes=2000):
+    def train(self, env, num_episodes=2000, batch_size=1):
         # create lists to contain total rewards and steps per episode
         rsum_100 = 0
         oversent_100 = 0
@@ -142,6 +145,8 @@ class QNet:
         ave_rate_100 = 0
         batch_to_print = 100
         batch_to_print_detail = 1000
+        episode_idx = 0
+        x_batch, y_batch, r_batch = [], [], []
 
         for i in range(num_episodes):
             xs, drs, ys = [], [], []
@@ -198,7 +203,7 @@ class QNet:
                         print "--------------"
 
                 if done:
-                    tsum_100 += t
+                    tsum_100 += (t + 1)
                     ave_rate_100 += float(oversent) / (t + 1)
 
                     epx = np.vstack(xs)
@@ -210,11 +215,19 @@ class QNet:
                     discounted_epr = self._discount_rewards_sw(
                         epr, self.input_size)
 
+                    x_batch.append(epx)
+                    y_batch.append(epy)
+                    r_batch.append(discounted_epr)
+
                     # if i % batch_to_print == 0:
                     #     print discounted_epr
-                    self.sess.run(self.updateModel, feed_dict={
-                        self.inputs: epx, self.input_y: epy,
-                        self.advantages: discounted_epr})
+                    episode_idx += 1
+                    if episode_idx % batch_size == 0:
+                        self.sess.run(self.updateModel, feed_dict={
+                            self.inputs: np.vstack(x_batch),
+                            self.input_y: np.vstack(y_batch),
+                            self.advantages: np.vstack(r_batch)})
+                        x_batch, y_batch, r_batch = [], [], []
                     break
 
             if i % batch_to_print == 0:
@@ -231,10 +244,9 @@ class QNet:
                 ave_rate_100 = 0
 
         # save the model
-        model_dir = './' + self.exp_name + '_model'
-        if not os.path.exists(model_dir):
-            os.makedirs(model_dir)
-        self.saver.save(self.sess, model_dir + '/' + self.exp_name)
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
+        self.saver.save(self.sess, self.model_dir + '/' + self.exp_name)
 
         print "Final Model:"
         print "W1 = " + str(self.sess.run(self.W1))
@@ -247,37 +259,52 @@ class QNet:
         print "b4 = " + str(self.sess.run(self.b4))
 
     # TODO refactor the test function
-    # def test(self, env):
-    #     # run the game with trained Q table:
-    #     # new_saver = tf.train.import_meta_graph(
-    #     # './checkpoints/frozenlake.meta')
-    #     self.saver.restore(
-    #         self.sess, tf.train.latest_checkpoint('./checkpoints'))
+    def test(self, env, num_episode=2000):
+        # run the game with trained network:
+        self.saver.restore(
+            self.sess, tf.train.latest_checkpoint(self.model_dir))
 
-    #     t = -1
-    #     s = env.reset()
-    #     rAll = 0.
-    #     num_episode = 1
-    #     for i in range(0, num_episode):
-    #         while True:
-    #             t += 1
-    #             input_val = self._generate_input(t, s)
-    #             a, Q = self.sess.run(
-    #                 [self.predict, self.Qout],
-    #                 feed_dict={self.inputs1: input_val})
-    #             s1, r, d = env.step(a[0])
-    #             env.render()
-    #             print "Q = " + str(Q)
-    #             rAll += r
-    #             s = s1
-    #             if d:
-    #                 break
+        ave_traffic_volume = 0.
+        ave_life_time = 0.
+        ave_rate = 0.
+        for i in range(0, num_episode):
+            t = -1
+            s = env.reset()
+            while True:
+                t += 1
+                input_val = self._generate_input(t, s)
+                x = np.reshape(input_val, [1, self.input_size])
+                tfprob = self.sess.run(
+                    self.prob, feed_dict={self.inputs: x})
+                action = 1 if np.random.uniform() < tfprob else 0
+                ave_traffic_volume += action
+                # Get new state and reward from environment
+                s, r, done, info = env.step(action)
 
-    #     print("average award = " + str(rAll / num_episode))
+                if done:
+                    ave_life_time += (t + 1)
+                    ave_rate += ave_traffic_volume / ave_life_time
+                    break
+        ave_traffic_volume /= num_episode
+        ave_life_time /= num_episode
+        ave_rate /= num_episode
+        print "average traffic volume = %f" % ave_traffic_volume
+        print "average life time = %f" % ave_life_time
+        print "average rate = %f" % ave_rate
+
+        with open(
+                self.output_dir + '/rl_result_' + self.exp_name + '.txt',
+                'w') as f:
+            f.write("traffic_volumn\tlife_time\trate\n")
+            f.write("%f\t%f\t%f\n" % (
+                ave_traffic_volume, ave_life_time, ave_rate))
 
 
 if __name__ == '__main__':
     NUM_EPISODES = 10000
+    NUM_TEST_EPISODES = 1000
+    BATCH_SIZE = 10
+    OUTPUT_DIR = "."
 
     # read config file:
     # 0. EXP_NAME
@@ -291,18 +318,23 @@ if __name__ == '__main__':
     if len(sys.argv) == 3 and sys.argv[1] == "--config":
         with open(sys.argv[2]) as config_file:
             config = json.load(config_file)
+        OUTPUT_DIR = '/'.join(
+            os.path.abspath(config_file.name).split('/')[:-1])
 
     if config is not None:
         if "NUM_EPISODES" in config:
             NUM_EPISODES = config["NUM_EPISODES"]
+        if "BATCH_SIZE" in config:
+            BATCH_SIZE = config["BATCH_SIZE"]
+        if "NUM_TEST_EPISODES" in config:
+            NUM_TEST_EPISODES = config["NUM_TEST_EPISODES"]
 
     env = ClefEnv(config=config)
     num_actions = len(env.get_action_space())
-
-    qNet = QNet(40, num_actions, config=config)
-    qNet.train(env, num_episodes=NUM_EPISODES)
+    qNet = QNet(40, num_actions, config=config, output_dir=OUTPUT_DIR)
+    qNet.train(env, num_episodes=NUM_EPISODES, batch_size=BATCH_SIZE)
     env.save_qnet_model()
-    # qNet.test(env)
+    qNet.test(env, num_episode=NUM_TEST_EPISODES)
 
     # total_r = 0
     # while True:
