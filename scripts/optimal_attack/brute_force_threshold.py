@@ -4,9 +4,9 @@ from utils import ValidChecker
 from utils import render_traffic
 from utils import TrafficIterator
 
-T_LIST = range(1, 5)
+T_LIST = range(1, 11)
 NUM_LEVELS = 4
-MAX_PERIOD = 30     # maximum period size to brute foce to
+MAX_PERIOD = 24     # maximum period size to brute foce to
 
 
 if __name__ == '__main__':

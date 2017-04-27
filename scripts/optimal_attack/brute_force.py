@@ -4,6 +4,7 @@ from utils import render_traffic
 from utils import TrafficIterator
 from clef_env import ClefEnv
 import operator
+import os.path
 
 T_LIST = range(1, 5)
 NUM_LEVELS = 4
@@ -11,12 +12,15 @@ MAX_PERIOD = 15     # maximum period size to brute foce to
 NUM_REPEATS = 1000
 THRESHOLD_RATE = 0.333333333333
 EXP_NAME = "test_bf_exp"
+OUTPUT_DIR = "."
 
 if __name__ == '__main__':
     config = None   # using default setting
     if len(sys.argv) == 3 and sys.argv[1] == "--config":
         with open(sys.argv[2]) as config_file:
             config = json.load(config_file)
+        OUTPUT_DIR = '/'.join(
+            os.path.abspath(config_file.name).split('/')[:-1])
 
     if config is not None:
         if "T_LIST" in config:
@@ -89,15 +93,15 @@ if __name__ == '__main__':
         max_life_times.items(), key=operator.itemgetter(0))
     sorted_patterns = sorted(patterns.items(), key=operator.itemgetter(0))
     print sorted_damages
-    with open("./result_" + EXP_NAME + ".txt", 'w') as f:
+    with open(OUTPUT_DIR + "/bf_damage_" + EXP_NAME + ".txt", 'w') as f:
         for rate, value in sorted_damages:
             # rate, damage, life_time
             f.write("%f\t%f\t%f\n" % (rate, value[0], value[1]))
 
-    with open("./max_life_time_" + EXP_NAME + ".txt", 'w') as f:
-        for rate, life_time in max_life_times:
+    with open(OUTPUT_DIR + "/bf_max_life_time_" + EXP_NAME + ".txt", 'w') as f:
+        for rate, life_time in sorted_life_times:
             f.write(str(rate) + "\t" + life_time + "\n")
 
-    with open("./patterns_" + EXP_NAME + ".txt", 'w') as f:
+    with open(OUTPUT_DIR + "/bf_patterns_" + EXP_NAME + ".txt", 'w') as f:
         for rate, pattern in sorted_patterns:
             f.write(str(rate) + "\t" + pattern + "\n")
