@@ -7,10 +7,10 @@ rate = [1.0, 0.77, 0.50, 0.89, 0.31, 0.3, 0.52, 0.28, 0.154];
 TH = 0.154;
 
 % toy scale:
-% rl_data = load('./toy_scale/rl_result_ts.txt');
-% TH = 0.166667;
-rl_data = load('./mini_scale/rl_result_ms.txt');
-TH = 0.333333333;
+rl_data = load('./toy_scale/rl_result_ts.txt');
+TH = 0.166667;
+% rl_data = load('./mini_scale/rl_result_ms.txt');
+% TH = 0.333333333;
 rate = rl_data(:, 1);
 oversent = rl_data(:, 2);
 life_time = rl_data(:, 3);
