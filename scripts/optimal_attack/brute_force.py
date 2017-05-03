@@ -6,10 +6,10 @@ from clef_env import ClefEnv
 import operator
 import os.path
 
-T_LIST = range(1, 5)
+T_LIST = range(1, 3)
 NUM_LEVELS = 4
-MAX_PERIOD = 15     # maximum period size to brute foce to
-NUM_REPEATS = 1000
+MAX_PERIOD = 5     # maximum period size to brute foce to
+NUM_TEST_EPISODES = 1000
 THRESHOLD_RATE = 0.333333333333
 EXP_NAME = "test_bf_exp"
 OUTPUT_DIR = "."
@@ -33,6 +33,8 @@ if __name__ == '__main__':
             MAX_PERIOD = config["MAX_PERIOD"]
         if "EXP_NAME" in config:
             EXP_NAME = config["EXP_NAME"]
+        if "NUM_TEST_EPISODES" in config:
+            NUM_TEST_EPISODES = config["NUM_TEST_EPISODES"]
 
     p = MAX_PERIOD
     T_max = max(T_LIST)
@@ -59,7 +61,7 @@ if __name__ == '__main__':
             print pattern
             ave_volume = 0
             ave_life_time = 0
-            for i in range(NUM_REPEATS):
+            for i in range(NUM_TEST_EPISODES):
                 # calculate the average traffic volume by repeated experiments
                 detector.reset()
                 d = False
@@ -70,8 +72,8 @@ if __name__ == '__main__':
                     t += 1
                     _, _, d, _ = detector.step(action)
                 ave_life_time += t
-            ave_volume /= float(NUM_REPEATS)
-            ave_life_time /= float(NUM_REPEATS)
+            ave_volume /= float(NUM_TEST_EPISODES)
+            ave_life_time /= float(NUM_TEST_EPISODES)
             ave_damage = ave_volume - ave_life_time * THRESHOLD_RATE
             print ave_life_time
             print ave_volume
