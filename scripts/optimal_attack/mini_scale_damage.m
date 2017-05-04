@@ -5,7 +5,7 @@ bf_data = load('./mini_scale/bf_damage_ms_bf_1.txt');
 bf_data_2 = load('./mini_scale/bf_damage_ms_bf_2.txt');
 
 TH = 0.333333333;
-% TH = 0.4;
+% TH = 0.41;
 rl_rate = rl_data(:, 1);
 rl_oversent = rl_data(:, 2);
 rl_life_time = rl_data(:, 3);

@@ -20,6 +20,8 @@ if __name__ == '__main__':
             T_LIST = config["T_LIST"]
         if "NUM_LEVELS" in config:
             NUM_LEVELS = config["NUM_LEVELS"]
+        if "MAX_PERIOD" in config:
+            MAX_PERIOD = config["MAX_PERIOD"]
 
     p = MAX_PERIOD
     T_max = max(T_LIST)
