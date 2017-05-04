@@ -250,7 +250,6 @@ class QNet:
                     i, ave_traffic_volume, ave_life_time, ave_rate))
                 test_file.flush()
 
-
         # save the model
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)

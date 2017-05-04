@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     with open(OUTPUT_DIR + "/bf_max_life_time_" + EXP_NAME + ".txt", 'w') as f:
         for rate, life_time in sorted_life_times:
-            f.write(str(rate) + "\t" + life_time + "\n")
+            f.write(str(rate) + "\t" + str(life_time) + "\n")
 
     with open(OUTPUT_DIR + "/bf_patterns_" + EXP_NAME + ".txt", 'w') as f:
         for rate, pattern in sorted_patterns:
