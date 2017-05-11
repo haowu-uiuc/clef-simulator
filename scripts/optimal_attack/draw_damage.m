@@ -1,18 +1,18 @@
 clear all, close all, clc;
 
 
-% rl_data = load('./mini_scale_2/rl_result_ms.txt');
-% bf_data = load('./mini_scale_2/bf_damage_ms_bf_1.txt');
+rl_data = load('./mini_scale_2/rl_result_ms.txt');
+bf_data = load('./mini_scale_2/bf_damage_ms_bf_1.txt');
 % bf_data_2 = load('./mini_scale_2/bf_damage_ms_bf_2.txt');
-% rl_onfly_data = load('./mini_scale_2/rl_onfly_result_ms.txt');
-% TH = 0.333333333;
-% TH = 0.41;
+rl_onfly_data = load('./mini_scale_2/rl_onfly_result_ms.txt');
+TH = 0.333333333;
+TH = 0.41;
 
-rl_data = load('./toy_scale_2/rl_result_ts.txt');
-bf_data = load('./toy_scale_2/bf_damage_ts_bf_100r.txt');
-rl_onfly_data = load('./toy_scale_2/rl_onfly_result_ts.txt');
-TH = 0.1666667;
-TH = 0.3
+% rl_data = load('./toy_scale_2/rl_result_ts.txt');
+% bf_data = load('./toy_scale_2/bf_damage_ts_bf_100r.txt');
+% rl_onfly_data = load('./toy_scale_2/rl_onfly_result_ts.txt');
+% TH = 0.1666667;
+% TH = 0.3
 
 rl_rate = rl_data(:, 1);
 rl_oversent = rl_data(:, 2);

@@ -117,7 +117,8 @@ figure;
 MB = 1000000*8;
 Tc1 = 0.1;
 rho = 40 * 10^9;
-gamma = rho / n / MB
+gamma = rho / n / MB;   % threshold rate
+gamma_h = n/2/(m+1);     % EARDet has twice counters of each RLFD in Twin-RLFD
 d_bound = (a-1) ./ p * gamma * Tc1;
 d_bound(1) = 10000 * gamma * Tc1;
 t = min(ones(1, length(p)) * 100, 1./total_cdf_prob);
@@ -128,10 +129,10 @@ plot(total_flow_size, d, '*-b');
 hold on
 plot(a, d_bound, '--r');
 % EARDet limit
-plot([n/(m+1), n/(m+1)+0.1], [10^10, 1], 'k--')
+plot([gamma_h, gamma_h+0.01], [10^10, 0], 'k--')
 legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
-ylim([100*gamma * Tc1, 2*10^3*gamma * Tc1]);
-xlim([0, 1200]);
+ylim([50*gamma * Tc1, 1*10^3*gamma * Tc1]);
+xlim([0, 1.2 * gamma_h]);
 title('\theta = 1.0');
 xlabel('\alpha = R_{atk}/\gamma');
 ylabel('Overuse Damage (MB)');
@@ -153,10 +154,10 @@ plot(total_flow_size / theta, d, '*-b');
 hold on
 plot(a / theta, d_bound, '--r');
 % EARDet limit
-plot([n/(m+1) * theta, n/(m+1) * theta+0.1], [10^10, 1], 'k--')
+plot([gamma_h * theta, gamma_h * theta+0.01], [10^10, 0], 'k--')
 legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
-ylim([100*gamma * Tc1, 2*10^3*gamma * Tc1]);
-xlim([0, 1200]);
+ylim([50*gamma * Tc1, 1*10^3*gamma * Tc1]);
+xlim([0, 1.2 * gamma_h]);
 title(['\theta=', num2str(theta), ', \theta T_b >= 2T_c^{(1)}']);
 xlabel('\alpha = R_{atk}/\gamma');
 ylabel('Overuse Damage (MB)');
@@ -171,7 +172,6 @@ a1 = 2*(2*n/m*log(n))^0.5;
 for i = 1:length(thetas)
 theta = thetas(i);
 figure;
-gamma_h = n/(m+1);
 depth = floor(log(n)/log(m)) + 1;
 d_bound = (a-1) ./ p * depth * gamma_h * 2 / a1 * gamma * Tc1;
 d_bound(1) = 1000000 * gamma * Tc1; % handle the corner case
@@ -183,10 +183,10 @@ plot(total_flow_size, d, '*-b');
 hold on
 plot(a, d_bound, '--r');
 % EARDet limit
-plot([n/(m+1) * theta, n/(m+1) * theta+0.1], [10^10* gamma * Tc1, 1], 'k--')
+plot([gamma_h * theta, gamma_h * theta+0.01], [10^10* gamma * Tc1, 0], 'k--')
 legend('Worst-case', 'Upper bound', 'EARDet \theta\gamma_{h}');
-ylim([100*gamma * Tc1, 2.5*10^4*gamma * Tc1]);
-xlim([0, 1200]);
+ylim([50*gamma * Tc1, 1.25*10^4*gamma * Tc1]);
+xlim([0, 1.2 * gamma_h]);
 title(['\theta=', num2str(theta), ', \theta T_b < 2T_c^{(1)}']);
 xlabel('\alpha = R_{atk}/\gamma');
 ylabel('Overuse Damage (MB)');

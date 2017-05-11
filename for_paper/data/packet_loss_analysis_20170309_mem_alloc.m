@@ -7,6 +7,8 @@ exp_dir = 'exp_logger_mem_alloc';
 % fm : amf
 mem_prefix = {'mem_10-90_', 'mem_30-70_', ...
     'mem_50-50_', 'mem_70-30_', 'mem_90-10_'};
+legend_str = {'\phi = 10:90', '\phi = 30:70',...
+    '\phi = 50:50', '\phi = 70:30', '\phi = 90:10'};
 exp_suffix = {'flat_20170311', 'burst_4_20170311', ...
     'burst_2_20170311', 'burst_1_20170311', 'burst_5_20170311'}';
 % exp_suffix = {'flat_20170311'};
@@ -190,22 +192,22 @@ for k = 1:length(routerLabelList)
 for j = 1:length(fig_num_counters)
     fig_num_counter = fig_num_counters(j);
     fig = figure;
-    legend_str = {};
     for i = 1:length(mem_prefix)
         counterIndex = counterToIndexMap{i}(fig_num_counter);
         total_damageMatrix = all_total_damageMatrix_list{i}{k};
         semilogx(rateList, total_damageMatrix(:, counterIndex), colors{i});
         hold on;
-        legend_str{i} = mem_prefix{i};
+%         legend_str{i} = mem_prefix{i};
     end
-    title([routerLabel, ' Damage, m=', num2str(fig_num_counter), ' \theta=', num2str(thetas(theta_idx))]);
+    title([routerLabel, ', m=', num2str(fig_num_counter), ' \theta=', num2str(thetas(theta_idx))]);
     xlabel('Large Flow Rate (B/s)');
     ylabel('Damage (Byte)');
     legend(legend_str)
 %     ylim([10^6, 5000000000]);
     ylim([0, 1.2*10^8]);
     set(gcf,'Position',[100 100 250 150]);
-    saveas(fig, [ee_fig_dir, routerName, '_total_damage_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
+    file_path = [ee_fig_dir, routerName, '_total_damage_at_counter_', num2str(fig_num_counter)];
+    saveas(fig, [file_path, '.pdf'], 'pdf');
     
     fig = figure;
     maxFN = 10;
@@ -219,14 +221,15 @@ for j = 1:length(fig_num_counters)
             semilogx(rateList, [10; FNMatrix(2:length(tmp), counterIndex)]/maxFN, colors{i});
         end
         hold on;
-        legend_str{i} = mem_prefix{i};
+%         legend_str{i} = mem_prefix{i};
     end
-    title([routerLabel, ' FN Ratio, m=', num2str(fig_num_counter), ' \theta=', num2str(thetas(theta_idx))]);
+    title([routerLabel, ', m=', num2str(fig_num_counter), ' \theta=', num2str(thetas(theta_idx))]);
     xlabel('Large Flow Rate (B/s)');
     ylabel('FN Ratio');
     legend(legend_str)
     set(gcf,'Position',[100 100 250 150]);
-    saveas(fig, [ee_fig_dir, routerName, '_FN_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
+    file_path = [ee_fig_dir, routerName, '_FN_at_counter_', num2str(fig_num_counter)];
+    saveas(fig, [file_path '.pdf'], 'pdf');
 end
 
 end

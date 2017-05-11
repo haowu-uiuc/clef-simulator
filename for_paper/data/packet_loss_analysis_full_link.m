@@ -360,8 +360,10 @@ for j = 1:length(fig_num_counters)
     ylabel('Damage (Byte)');
 %     ylim([10^6, 5000000000]);
     ylim([0, damage_ylim(exp_idx)]);
-    legend(routerLabelList);
-    set(gcf,'Position',[100 100 250 150]);
+    if exp_idx == length(expNames)
+        legend(routerLabelList)
+    end
+    set(gcf,'Position',[100 100 180 120]);
     saveas(fig, [fig_dir, 'total_damage_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
 end
 
@@ -384,8 +386,10 @@ for j = 1:length(fig_num_counters)
     title(['FN Ratio, m=', num2str(fig_num_counter)]);
     xlabel('Large Flow Rate (B/s)')
     ylabel('FN Ratio');
-    legend(routerLabelList);
-    set(gcf,'Position',[100 100 250 150]);
+    if exp_idx == length(expNames)
+        legend(routerLabelList)
+    end
+    set(gcf,'Position',[100 100 180 120]);
     saveas(fig, [fig_dir, 'FN_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
 end
 
@@ -413,8 +417,8 @@ for j = 1:length(fig_num_counters)
     ylabel('Damage (Byte)');
     legend(legend_str)
 %     ylim([10^6, 5000000000]);
-    ylim([0, 1.2*10^8]);
-    set(gcf,'Position',[100 100 250 150]);
+    ylim([0, 0.8*10^8]);
+    set(gcf,'Position',[100 100 180 120]);
     saveas(fig, [ee_fig_dir, 'ee_total_damage_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
     
     fig = figure;
@@ -434,7 +438,7 @@ for j = 1:length(fig_num_counters)
     xlabel('Large Flow Rate (B/s)');
     ylabel('FN Ratio');
     legend(legend_str)
-    set(gcf,'Position',[100 100 250 150]);
+    set(gcf,'Position',[100 100 180 120]);
     saveas(fig, [ee_fig_dir, 'ee_FN_at_counter_', num2str(fig_num_counter), '.pdf'], 'pdf');
 end
 
