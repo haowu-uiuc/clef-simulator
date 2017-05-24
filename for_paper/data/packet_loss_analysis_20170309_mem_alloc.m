@@ -214,7 +214,7 @@ for j = 1:length(fig_num_counters)
     for i = 1:length(mem_prefix)
         counterIndex = counterToIndexMap{i}(fig_num_counter);
         FNMatrix = all_FNMatrix_list{i}{k};
-        if thetas(i) < 1.0
+        if thetas(theta_idx) < 1.0
             semilogx(rateList, FNMatrix(:, counterIndex)/maxFN, colors{i});
         else
             tmp = FNMatrix(:, counterIndex);

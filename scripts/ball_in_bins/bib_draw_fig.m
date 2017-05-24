@@ -64,6 +64,7 @@ end
 %%%%%% figure show the worst-case background traffic %%%%%
 fig = figure;
 colors = {'b-*', 'k-^', 'r-x', 'm-v', 'g-d', 'c-o', 'y-+'};
+rho = 1000;
 num_balls_list = [100000, 10000, 1000];
 num_bins_list = [100, 100, 100];
 gammas = [0.01, 0.1, 1]
@@ -126,9 +127,9 @@ for j = 1:length(num_balls_list)
         plot([cdf_flow_size_list{max_tops(i)} * gamma, max_prob_array], [cdf_prob_list{max_tops(i)}, ones(1, length(max_prob_array))], colors{j});
         hold on;
         if (gamma ~= 1)
-            legend_list{j} = ['background rate = ', num2str(gamma), '\gamma'];
+            legend_list{j} = [num2str(rho/gamma), ' flows; background rate = ', num2str(gamma)];
         else
-            legend_list{j} = ['background rate = \gamma'];
+            legend_list{j} = [num2str(rho/gamma), ' flows; background rate = \gamma'];
         end
         max_flow_size = max(max_flow_size, max(cdf_flow_size_list{max_tops(i)}) * gamma);
     end   

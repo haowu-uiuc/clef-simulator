@@ -136,7 +136,7 @@ xlim([0, 1.2 * gamma_h]);
 title('\theta = 1.0');
 xlabel('\alpha = R_{atk}/\gamma');
 ylabel('Overuse Damage (MB)');
-set(gcf,'Position',[100 100 210 150]);
+set(gcf,'Position',[100 100 210 155]);
 
 
 % bursty flow damage trend
@@ -166,17 +166,22 @@ end
 
 
 % bursty flow damage trend for twin-efd
+display('bursty flow damage trend for twin-efd');
 thetas = [0.8, 0.5, 0.25, 0.15];
 a1 = 2*(2*n/m*log(n))^0.5;
-% a1 = 100
+a1 = a1 / 2;
+% a1 = 100;   % not a1 but a = 100
+depth = floor(log(n)/log(m)) + 1;
+Tc2 = 2 * depth * gamma_h / a1 * Tc1
 for i = 1:length(thetas)
 theta = thetas(i);
 figure;
-depth = floor(log(n)/log(m)) + 1;
-d_bound = (a-1) ./ p * depth * gamma_h * 2 / a1 * gamma * Tc1;
+% d_bound = (a-1) ./ p * depth * gamma_h * 2 / a1 * gamma * Tc1;
+d_bound = (a-1) ./ p * gamma * Tc2;
 d_bound(1) = 1000000 * gamma * Tc1; % handle the corner case
 t = min(ones(1, length(p)) * 100, 1./total_cdf_prob);
-d = (total_flow_size-1) ./ total_cdf_prob * depth * gamma_h * 2 / a1 * gamma * Tc1;
+% d = (total_flow_size-1) ./ total_cdf_prob * depth * gamma_h * 2 / a1 * gamma * Tc1;
+d = (total_flow_size-1) ./ total_cdf_prob * gamma * Tc2;
 d(1) = 1000000 * gamma * Tc1; % handle the corner case
 % semilogy(total_flow_size, d, '*-b');
 plot(total_flow_size, d, '*-b');
